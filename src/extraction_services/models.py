@@ -1,7 +1,5 @@
 from django.db import models
-# from user_service.models import User
 from model_utils.models import TimeStampedModel
-# from utils.file_utils import upload_user_media
 from datetime import timedelta
 from django.utils.timezone import now
 import django
