@@ -15,9 +15,12 @@ class AuctionHouseLondon:
 
     def prepare_price(self, price):
         try:
-           price = float(price.split('-')[0].replace('£', '').replace('+', '').replace(',', ''))
+            if 'sold' in price.lower():
+                price = None
+            else:
+                price = float(price.split('-')[0].replace('£', '').replace('+', '').replace(',', ''))
         except Exception as ex:
-            print(f"Exception in Price Function - {ex}")
+            raise TypeError("Price convertion issue")
         return price
 
     def parser(self, data):
@@ -27,6 +30,8 @@ class AuctionHouseLondon:
                 if not lot_details:
                     pass
                 price = self.prepare_price(lot_details['GuidePrice'])
+                if price == None:
+                    pass
                 full_address = lot_details['FullAddress']
                 url_id = "-".join(full_address.replace(',','').split())
                 lot_id = lot_details['ID']
@@ -34,7 +39,7 @@ class AuctionHouseLondon:
                 try:
                     inner_res = self.connect_to(url)
                 except Exception as ex:
-                    print(f"URL issue {ex}")
+                    raise Exception(f"URL issue {ex}")
 
                 inner_details = inner_res.json()['result']['pageContext']
                 auction_date = inner_details['AuctionDate']
