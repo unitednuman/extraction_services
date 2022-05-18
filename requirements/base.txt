@@ -1,0 +1,16 @@
+Django==2.2.16
+djangorestframework==3.12.2
+djoser==2.1.0
+djangorestframework-simplejwt==4.6.0
+django-environ==0.4.5
+drf-yasg==1.20.0
+git+https://github.com/schecterdamien/django-request-context.git
+django-model-utils==4.1.1
+python-dateutil==2.8.1
+django-cors-headers==3.7.0
+psycopg2-binary==2.8.6
+gunicorn==20.0.4
+gevent==21.1.2
+django-error-report==0.2.0
+django-q==1.3.9
+redis==3.5.3

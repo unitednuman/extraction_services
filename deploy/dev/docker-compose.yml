@@ -1,0 +1,61 @@
+version: "3.8"
+
+volumes:
+    static:
+    media:
+    pgdata:
+    redisdata:
+
+services:
+  redis:
+    restart: always
+    container_name: dev-redis
+    image: redis:latest
+    expose:
+      - "6379"
+    volumes:
+      - redisdata:/var/lib/redis/data
+  db:
+    restart: always
+    container_name: dev-services-db
+    image: postgres:latest
+    expose:
+      - "5432"
+    ports:
+      - "5432:5432"
+    env_file:
+      - django/env.txt
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  extraction_services-app:
+    restart: always
+    image: extraction_services
+    build:
+      context: ../../
+      dockerfile: deploy/dev/django/Dockerfile
+    container_name: dev-cyber_push-app-container
+    env_file:
+      - django/env.txt
+    ports:
+      - "80:8000"
+    expose:
+      - 80
+    depends_on:
+      - db
+      - redis
+    command: ./entrypoint.sh
+    volumes:
+      - static:/app/staticfiles
+      - media:/app/media
+
+  qcluster:
+    image: extraction_services
+    container_name: dev-qcluster
+    env_file:
+      - django/env.txt
+    command: python manage.py qcluster
+    depends_on:
+      - db
+      - redis
+      - extraction_services-app
