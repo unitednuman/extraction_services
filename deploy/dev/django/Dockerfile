@@ -15,7 +15,7 @@ RUN pip install -r /requirements/dev.txt
 
 ADD ./src /app
 
-ADD ./deploy/dev/django/env.txt /app/nfc/settings/.env
+ADD ./deploy/dev/django/env.txt /app/services/settings/.env
 
 ADD ./deploy/dev/django/entrypoint.sh /app/entrypoint.sh
 RUN sed -i 's/\r$//g' /app/entrypoint.sh
