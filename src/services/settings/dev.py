@@ -2,23 +2,23 @@ from .base import *
 import logging.config
 
 
-DATABASES = {
-     'default': {
-         'ENGINE': 'django.db.backends.sqlite3',
-         'NAME': "db.sqlite3",
-     }
- }
-
 # DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': env('POSTGRES_DB'),
-#         'USER': env('POSTGRES_USER'),
-#         'PASSWORD': env('POSTGRES_PASSWORD'),
-#         'HOST': env('POSTGRES_HOST'),
-#         'PORT': '5432',
-#     }
-# }
+#      'default': {
+#          'ENGINE': 'django.db.backends.sqlite3',
+#          'NAME': "db.sqlite3",
+#      }
+#  }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('POSTGRES_DB'),
+        'USER': env('POSTGRES_USER'),
+        'PASSWORD': env('POSTGRES_PASSWORD'),
+        'HOST': env('POSTGRES_HOST'),
+        'PORT': '5432',
+    }
+}
 
 # Log everything to the logs directory at the top
 LOGFILE_ROOT = BASE_DIR.parent / "logs"
@@ -68,11 +68,11 @@ LOGFILE_ROOT = BASE_DIR.parent / "logs"
 
 # logging.config.dictConfig(LOGGING)
 
-EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = str(LOGFILE_ROOT / "emails")
 
-
-DEFAULT_FROM_EMAIL = 'no-reply@tyudirectory.org'
-SERVER_EMAIL = 'webmaster@tyudirectory.org'
+#
+# DEFAULT_FROM_EMAIL = 'no-reply@tyudirectory.org'
+# SERVER_EMAIL = 'webmaster@tyudirectory.org'
 
 

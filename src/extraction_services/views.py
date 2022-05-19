@@ -29,10 +29,9 @@ class HouseAuctionView(generics.GenericAPIView):
                           type=openapi.TYPE_STRING, required=False, default=None),
     ])
     def get(self, request, *args, **kwargs):
-        #search = request.GET.get('search', '')
+        # search = request.GET.get('search', '')
 
         data = self.queryset.all()
-
         paginated_response = self.paginate_queryset(data)
         serialized = self.get_serializer(paginated_response, many=True)
         return self.get_paginated_response(serialized.data)
@@ -42,7 +41,7 @@ class HouseAuctionView(generics.GenericAPIView):
         if serialized.is_valid():
             serialized.save()
             return response.Response(serialized.data, status=status.HTTP_201_CREATED)
-        return response.Response("Data is not valid", serialized.errors)
+        return response.Response(serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class HouseAuctionViewDetails(generics.GenericAPIView):
@@ -77,6 +76,3 @@ class HouseAuctionViewDetails(generics.GenericAPIView):
             toy_data.delete()
             return response.Response(status=status.HTTP_204_NO_CONTENT)
         return response.Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-
-

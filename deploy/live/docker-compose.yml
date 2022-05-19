@@ -34,7 +34,7 @@ services:
     build:
       context: ../../
       dockerfile: deploy/live/django/Dockerfile
-    container_name: live-cyber_push-app-container
+    container_name: live-extraction_services-app-container
     env_file:
       - django/env.txt
     ports:

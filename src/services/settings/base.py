@@ -55,10 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'djoser',
     'drf_yasg',
-    # 'auth_service',
-    # 'user_service',
     'extraction_services',
     'error_report',
     'django_q',
@@ -67,7 +64,7 @@ Q_CLUSTER = {
     'name': 'cyber-plush-{}'.format(ENV),
     'workers': 8,
     'recycle': 500,
-    'sync': DEBUG,
+    'sync': False,
     'timeout': 60,
     'compress': True,
     'save_limit': 250,
@@ -80,6 +77,7 @@ Q_CLUSTER = {
         'db': 0,
     }
 }
+
 #env('REDIS_HOST')
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -144,12 +142,11 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
+# USE_TZ = True
+# USE_I18N = True
+#
+# USE_L10N = True
 
-USE_I18N = True
-
-USE_L10N = True
-
-USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
@@ -200,25 +197,25 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
-DOMAIN = 'tyudirectory.org'
-SITE_NAME = 'tyudirectory'
+# DOMAIN = 'tyudirectory.org'
+# SITE_NAME = 'tyudirectory'
 
-DJOSER = {
-    'SEND_ACTIVATION_EMAIL': True,
-    'SEND_CONFIRMATION_EMAIL': True,
-    'ACTIVATION_URL': 'activation/{uid}/{token}',
-    'PASSWORD_RESET_CONFIRM_URL': 'forgot/password/{uid}/{token}',
-    'USER_CREATE_PASSWORD_RETYPE': True,
-    'SET_PASSWORD_RETYPE': True,
-    'PASSWORD_RESET_CONFIRM_RETYPE': True,
-    'PASSWORD_CHANGED_EMAIL_CONFIRMATION': True,
-    'SERIALIZERS': {
-        'current_user': 'user_service.serializers.UserCustomSerializer',
-        'user': 'user_service.serializers.UserCustomSerializer',
-        'user_create_password_retype': 'user_service.serializers.UserCreatePasswordRetypeCustomSerializer'
-    },
-    'HIDE_USERS': False
-}
+# DJOSER = {
+#     'SEND_ACTIVATION_EMAIL': True,
+#     'SEND_CONFIRMATION_EMAIL': True,
+#     'ACTIVATION_URL': 'activation/{uid}/{token}',
+#     'PASSWORD_RESET_CONFIRM_URL': 'forgot/password/{uid}/{token}',
+#     'USER_CREATE_PASSWORD_RETYPE': True,
+#     'SET_PASSWORD_RETYPE': True,
+#     'PASSWORD_RESET_CONFIRM_RETYPE': True,
+#     'PASSWORD_CHANGED_EMAIL_CONFIRMATION': True,
+#     'SERIALIZERS': {
+#         'current_user': 'user_service.serializers.UserCustomSerializer',
+#         'user': 'user_service.serializers.UserCustomSerializer',
+#         'user_create_password_retype': 'user_service.serializers.UserCreatePasswordRetypeCustomSerializer'
+#     },
+#     'HIDE_USERS': False
+# }
 
 # AUTH_USER_MODEL = 'user_service.User'
 
@@ -234,4 +231,4 @@ SWAGGER_SETTINGS = {
 
 API_VERSIONS = [1.0]
 
-AUTHENTICATION_BACKENDS = ['auth_service.backend.EmailBackend']
+# AUTHENTICATION_BACKENDS = ['auth_service.backend.EmailBackend']

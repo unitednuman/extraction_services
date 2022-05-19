@@ -1,12 +1,12 @@
-from django_q.tasks import schedule
-from django_q.models import Schedule
-import arrow
-# from .models import AccessoriesType, Toy, ToyAccessorie, ToySetting
-import django
-import datetime
-
-
-# def update_score():
+# from django_q.tasks import schedule
+# import arrow
+# # from .models import AccessoriesType, Toy, ToyAccessorie, ToySetting
+# import django
+# import datetime
+from scrappers.allsop import AllSop
+def update_score():
+    print("hellow world")
+    AllSop().scraper()
 #     accessories = ToyAccessorie.objects.all()
 #     if accessories:
 #         for accessory in accessories:

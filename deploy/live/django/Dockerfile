@@ -15,8 +15,7 @@ RUN pip install -r /requirements/live.txt
 
 ADD ./src /app
 
-ADD ./deploy/live/django/env.txt /app/nfc/settings/.env
-
+ADD ./deploy/live/django/env.txt /app/services/settings/.env
 ADD ./deploy/live/django/entrypoint.sh /app/entrypoint.sh
 RUN sed -i 's/\r$//g' /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh

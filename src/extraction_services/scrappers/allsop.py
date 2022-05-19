@@ -2,9 +2,8 @@ import requests
 import os
 import json
 import re
-import constant
 import datetime
-
+from ..models import HouseAuction
 
 class AllSop:
     DOMAIN = 'https://auctions.allsop.co.uk'
@@ -35,12 +34,12 @@ class AllSop:
     def prepare_price(self, price):
         price = price.split('-')[0].replace('£', '').replace('+', '')
         if 'M' in price:
-            return float(price.replace("M",'')) * 1000000
+            return float(price.replace("M", '')) * 1000000
         else:
             return float(price) * 100000
 
     def parser(self, data):
-        data_array = []    
+        data_array = []
         for json_data in data['data']['results']:
             reference_no = "-".join(json_data["reference"].split())
             url = f"https://auctions.allsop.co.uk/api/lot/reference/{reference_no}?react"
@@ -50,41 +49,42 @@ class AllSop:
             price = self.prepare_price(price_str)
             auction_date = details['version']['allsop_auction']['allsop_auctiondate']
             auction_hours = auction_date.split('T')[1]
-            auc_hours = ":".join([auction_hours.split(":")[0],auction_hours.split(":")[1]])
+            auc_hours = ":".join([auction_hours.split(":")[0], auction_hours.split(":")[1]])
             features = "\n".join([value['value'] for value in details["version"]['features']])
             image_id = details["version"]['images'][0]['file_id']
             image_url = f"https://ams-auctions-production-storage.s3.eu-west-2.amazonaws.com/image_cache/{image_id}---auto--.jpg"
             data_hash = {
-                "_id": details["version"]["allsop_auctionid"],
-                "guidePrice": price,
-                "pictureLink": image_url,
-                "propertyDescription": features,
-                "propertyLink": res.url,
+                # "_id": details["version"]["allsop_auctionid"],
+                "guide_price": price,
+                "picture_link": image_url,
+                "property_description": features,
+                "property_link": res.url,
                 "address": details["version"]['allsop_property']['allsop_name'],
-                "postcode": details["version"]['allsop_property']['allsop_postcode'],
-                "numberOfBedrooms": details["version"]['allsop_property']['allsop_bedrooms'],
-                "propertyType": details['version']['tenancy_type'],
+                "postal_code": details["version"]['allsop_property']['allsop_postcode'],
+                "number_of_bedrooms": details["version"]['allsop_property']['allsop_bedrooms'],
+                "property_type": details['version']['tenancy_type'],
                 "tenure": details['version']['allsop_propertytenure'],
-                "auctionDetails": {
-                    "date": auction_date,
-                    "hour": auc_hours,
-                    "venue": details['version']['allsop_auction']['allsop_venue'],
-                },
+                "auction_date": auction_date,
+                "auction_hour": auc_hours,
+                "venue": details['version']['allsop_auction']['allsop_venue'],
                 "domain": "https://www.auctionhouse.co.uk/"
             }
+            HouseAuction.objects.create(**data_hash)
+
             data_array.append(data_hash)
 
-        return data_array    
+        return data_array
 
     def scraper(self):
         response = self.connect_to(self.URL)
         item = []
         items = self.parser(response.json())
         print(len(items))
-        #insertion needs to be done yet
+        # insertion needs to be done yet
 
 
-try:
-    AllSop().scraper()
-except Exception as e:
-    print(e)
+
+# try:
+#     AllSop().scraper()
+# except Exception as e:
+#     print(e)
