@@ -11,6 +11,8 @@ services:
     restart: always
     container_name: dev-redis
     image: redis:latest
+    ports:
+      - "6379:6379"
     expose:
       - "6379"
     volumes:
@@ -34,13 +36,13 @@ services:
     build:
       context: ../../
       dockerfile: deploy/dev/django/Dockerfile
-    container_name: dev-cyber_push-app-container
+    container_name: dev-extraction_services-app-container
     env_file:
       - django/env.txt
     ports:
       - "80:8000"
     expose:
-      - 80
+      - 8000
     depends_on:
       - db
       - redis
