@@ -42,7 +42,7 @@ services:
     ports:
       - "80:8000"
     expose:
-      - 8000
+      - 80
     depends_on:
       - db
       - redis
