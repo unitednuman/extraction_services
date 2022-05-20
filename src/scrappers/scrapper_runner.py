@@ -1,4 +1,4 @@
-from allsop import AllSop
+from scrappers.allsop import AllSop
 
 
 def run():
@@ -6,6 +6,3 @@ def run():
         AllSop().scraper()
     except BaseException as be:
         print(be)
-
-
-

@@ -3,7 +3,8 @@ import os
 import json
 import re
 import datetime
-from ..models import HouseAuction
+from extraction_services.models import HouseAuction
+
 
 class AllSop:
     DOMAIN = 'https://auctions.allsop.co.uk'
@@ -13,7 +14,7 @@ class AllSop:
         pass
 
     def connect_to(self, url, payload={}):
-        print(url)
+
         headers = {
             'authority': 'auctions.allsop.co.uk',
             'accept': '*/*',
@@ -55,22 +56,22 @@ class AllSop:
             image_url = f"https://ams-auctions-production-storage.s3.eu-west-2.amazonaws.com/image_cache/{image_id}---auto--.jpg"
             data_hash = {
                 # "_id": details["version"]["allsop_auctionid"],
-                "guide_price": price,
-                "picture_link": image_url,
-                "property_description": features,
-                "property_link": res.url,
-                "address": details["version"]['allsop_property']['allsop_name'],
-                "postal_code": details["version"]['allsop_property']['allsop_postcode'],
-                "number_of_bedrooms": details["version"]['allsop_property']['allsop_bedrooms'],
-                "property_type": details['version']['tenancy_type'],
-                "tenure": details['version']['allsop_propertytenure'],
-                "auction_date": auction_date,
-                "auction_hour": auc_hours,
-                "venue": details['version']['allsop_auction']['allsop_venue'],
-                "domain": "https://www.auctionhouse.co.uk/"
+                "price": str(price),
+                "picture_link": str(image_url),
+                "property_description": str(features),
+                "property_link": str(res.url),
+                "address": str(details["version"]['allsop_property']['allsop_name']),
+                "postal_code": str(details["version"]['allsop_property']['allsop_postcode']),
+                "number_of_bedrooms": str(details["version"]['allsop_property']['allsop_bedrooms']),
+                "property_type": str(details['version']['tenancy_type']),
+                "tenure": str(details['version']['allsop_propertytenure']),
+                "auction_date": str(auction_date),
+                "auction_hour": str(auc_hours),
+                "auction_venue": str(details['version']['allsop_auction']['allsop_venue']),
+                "domain": str("https://www.auctionhouse.co.uk/")
             }
-            HouseAuction.objects.create(**data_hash)
 
+            HouseAuction.objects.create(**data_hash)
             data_array.append(data_hash)
 
         return data_array
@@ -79,12 +80,5 @@ class AllSop:
         response = self.connect_to(self.URL)
         item = []
         items = self.parser(response.json())
-        print(len(items))
+
         # insertion needs to be done yet
-
-
-
-# try:
-#     AllSop().scraper()
-# except Exception as e:
-#     print(e)

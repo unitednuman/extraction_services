@@ -9,10 +9,10 @@ import pytz
 
 # Create your models here.
 class HouseAuction(TimeStampedModel):
-    guide_price = models.CharField(max_length=255, null=True, blank=True)
+    price = models.CharField(max_length=255, null=True, blank=True)
     picture_link = models.CharField(max_length=255, null=True, blank=True)
     property_description = models.TextField()
-    property_link: models.CharField(max_length=255, null=True, blank=True)
+    property_link = models.CharField(max_length=255, null=True, blank=True)
     address = models.CharField(max_length=255, null=True, blank=True)
     postal_code = models.CharField(max_length=255, null=True, blank=True)
     number_of_bedrooms = models.CharField(max_length=255, null=True, blank=True)
@@ -22,3 +22,4 @@ class HouseAuction(TimeStampedModel):
     auction_hour = models.CharField(max_length=255, null=True, blank=True)
     auction_venue = models.CharField(max_length=255, null=True, blank=True)
     domain = models.CharField(max_length=255, null=True, blank=True)
+
