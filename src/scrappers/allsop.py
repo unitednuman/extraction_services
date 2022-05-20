@@ -14,7 +14,7 @@ class AllSop:
         pass
 
     def connect_to(self, url, payload={}):
-
+        print(url)
         headers = {
             'authority': 'auctions.allsop.co.uk',
             'accept': '*/*',
@@ -70,8 +70,9 @@ class AllSop:
                 "auction_venue": str(details['version']['allsop_auction']['allsop_venue']),
                 "domain": str("https://www.auctionhouse.co.uk/")
             }
-
+            print(data_hash)
             HouseAuction.objects.create(**data_hash)
+
             data_array.append(data_hash)
 
         return data_array
@@ -80,5 +81,6 @@ class AllSop:
         response = self.connect_to(self.URL)
         item = []
         items = self.parser(response.json())
-
+        print(len(items))
         # insertion needs to be done yet
+
