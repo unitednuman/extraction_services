@@ -10,7 +10,7 @@ class AllSop:
     def __init__(self):
         pass
 
-    def connect_to(self, url, payload={}): #fixme {}
+    def connect_to(self, url, payload={}):  # fixme {}
         headers = {
             'authority': 'auctions.allsop.co.uk',
             'accept': '*/*',
@@ -29,12 +29,12 @@ class AllSop:
         return re
 
     def prepare_price(self, price):
-        #fixme : none type object error
-        price = price.split('-')[0].replace('£', '').replace('+', '').replace(",","")
+        # fixme : none type object error
+        price = price.split('-')[0].replace('£', '').replace('+', '').replace(",", "")
         if 'M' in price:
             return float(price.replace("M", '')) * 1000000
         else:
-            return float(price) * 100000   #fixme : why multply with fix value
+            return float(price) * 100000  # fixme : why multply with fix value
 
     def parser(self, data):
 
@@ -63,19 +63,30 @@ class AllSop:
                 "property_type": details['version']['tenancy_type'],
                 "tenure": details['version']['allsop_propertytenure'],
                 "auction_datetime": auction_date,
-                #"auction_hour": auc_hours,  combine it with auction_date_time
+                # "auction_hour": auc_hours,  combine it with auction_date_time
                 "auction_venue": details['version']['allsop_auction']['allsop_venue'],
                 "source": "auctionhouse.co.uk"
             }
 
-            if house_auction := HouseAuction.objects.filter(property_link =res.url ).first():
-                house_auction.update(**data_hash)
+            if house_auction := HouseAuction.objects.filter(property_link=res.url):
+                house_auction.update(
+                    price=price,
+                    picture_link=image_url,
+                    property_description=features,
+                    property_link=res.url,
+                    address=details["version"]['allsop_property']['allsop_name'],
+                    postal_code=details["version"]['allsop_property']['allsop_postcode'],
+                    number_of_bedrooms=details["version"]['allsop_property']['allsop_bedrooms'],
+                    property_type=details['version']['tenancy_type'],
+                    tenure=details['version']['allsop_propertytenure'],
+                    auction_datetime=auction_date,
+                    # "auction_hour": auc_hours,  combine it with auction_date_time
+                    auction_venue=details['version']['allsop_auction']['allsop_venue'],
+                    source="auctionhouse.co.uk"
+
+                )
             else:
                 HouseAuction.objects.create(**data_hash)
-
-
-
-
 
     def scraper(self):
         response = self.connect_to(self.URL)
@@ -85,7 +96,4 @@ class AllSop:
 
 
 def run():
-
-        AllSop().scraper()
-
-
+    AllSop().scraper()
