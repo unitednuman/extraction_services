@@ -1,3 +1,5 @@
+import importlib
+
 from cffi.setuptools_ext import execfile
 from django.core.management.base import BaseCommand, CommandError
 import json
@@ -18,6 +20,5 @@ class Command(BaseCommand):
     # command : python manage.py all_scrapper_tester
     def handle(self, *args, **options):
         file_name = options['path'][:-3]
-        # from options['path'] import run
-        # execfile('./scrappers/allsop.py',glob={})
-        # print("here")
+        module = importlib.import_module(f"scrappers.{file_name}")
+        module.run()
