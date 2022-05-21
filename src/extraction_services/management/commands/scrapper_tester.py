@@ -14,10 +14,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--path', type=str)
 
-    # with arguments
     # command :  python manage.py scrapper_tester --path allsop.py
-    # without arguments
-    # command : python manage.py all_scrapper_tester
     def handle(self, *args, **options):
         file_name = options['path'][:-3]
         module = importlib.import_module(f"scrappers.{file_name}")
