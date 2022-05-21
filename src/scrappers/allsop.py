@@ -10,7 +10,7 @@ class AllSop:
     def __init__(self):
         pass
 
-    def connect_to(self, url, payload={}):
+    def connect_to(self, url, payload={}): #fixme {}
         headers = {
             'authority': 'auctions.allsop.co.uk',
             'accept': '*/*',
@@ -29,11 +29,12 @@ class AllSop:
         return re
 
     def prepare_price(self, price):
-        price = price.split('-')[0].replace('£', '').replace('+', '')
+        #fixme : none type object error
+        price = price.split('-')[0].replace('£', '').replace('+', '').replace(",","")
         if 'M' in price:
             return float(price.replace("M", '')) * 1000000
         else:
-            return float(price) * 100000
+            return float(price) * 100000   #fixme : why multply with fix value
 
     def parser(self, data):
 
@@ -52,30 +53,25 @@ class AllSop:
             image_url = f"https://ams-auctions-production-storage.s3.eu-west-2.amazonaws.com/image_cache/{image_id}---auto--.jpg"
             data_hash = {
                 # "_id": details["version"]["allsop_auctionid"],
-                "price": str(price),
-                "picture_link": str(image_url),
-                "property_description": str(features),
-                "property_link": str(res.url),
-                "address": str(details["version"]['allsop_property']['allsop_name']),
-                "postal_code": str(details["version"]['allsop_property']['allsop_postcode']),
-                "number_of_bedrooms": str(details["version"]['allsop_property']['allsop_bedrooms']),
-                "property_type": str(details['version']['tenancy_type']),
-                "tenure": str(details['version']['allsop_propertytenure']),
-                "auction_date": str(auction_date),
-                "auction_hour": str(auc_hours),
-                "auction_venue": str(details['version']['allsop_auction']['allsop_venue']),
-                "domain": str("https://www.auctionhouse.co.uk/")
+                "price": price,
+                "picture_link": image_url,
+                "property_description": features,
+                "property_link": res.url,
+                "address": details["version"]['allsop_property']['allsop_name'],
+                "postal_code": details["version"]['allsop_property']['allsop_postcode'],
+                "number_of_bedrooms": details["version"]['allsop_property']['allsop_bedrooms'],
+                "property_type": details['version']['tenancy_type'],
+                "tenure": details['version']['allsop_propertytenure'],
+                "auction_datetime": auction_date,
+                #"auction_hour": auc_hours,  combine it with auction_date_time
+                "auction_venue": details['version']['allsop_auction']['allsop_venue'],
+                "source": "auctionhouse.co.uk"
             }
 
-            try:
+            if house_auction := HouseAuction.objects.filter(property_link =res.url ).first():
+                house_auction.update(**data_hash)
+            else:
                 HouseAuction.objects.create(**data_hash)
-            except BaseException as be:
-                report = {
-                    "file_name": "model error",
-                    "error": str(be),
-                    "path": " "
-                }
-                ErrorReport.objects.create(**report)
 
 
 
