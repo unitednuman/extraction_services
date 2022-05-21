@@ -69,22 +69,7 @@ class AllSop:
             }
 
             if house_auction := HouseAuction.objects.filter(property_link=res.url):
-                house_auction.update(
-                    price=price,
-                    picture_link=image_url,
-                    property_description=features,
-                    property_link=res.url,
-                    address=details["version"]['allsop_property']['allsop_name'],
-                    postal_code=details["version"]['allsop_property']['allsop_postcode'],
-                    number_of_bedrooms=details["version"]['allsop_property']['allsop_bedrooms'],
-                    property_type=details['version']['tenancy_type'],
-                    tenure=details['version']['allsop_propertytenure'],
-                    auction_datetime=auction_date,
-                    # "auction_hour": auc_hours,  combine it with auction_date_time
-                    auction_venue=details['version']['allsop_auction']['allsop_venue'],
-                    source="auctionhouse.co.uk"
-
-                )
+                house_auction.update(**data_hash)
             else:
                 HouseAuction.objects.create(**data_hash)
 

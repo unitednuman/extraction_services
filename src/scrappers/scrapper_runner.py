@@ -3,7 +3,7 @@ from scrappers.traceback import get_traceback
 import os
 import importlib
 import logging
-# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 
 def run():
