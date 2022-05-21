@@ -1,8 +1,10 @@
+from cffi.setuptools_ext import execfile
 from django.core.management.base import BaseCommand, CommandError
 import json
 import re
-from scrappers import scrapper_runner
 
+from scrappers import scrapper_runner
+from scrappers import *
 
 # from directory_services import models
 
@@ -11,8 +13,11 @@ class Command(BaseCommand):
         parser.add_argument('--path', type=str)
 
     # with arguments
-    # command :  python manage.py tester --path directory_services/data/filename
+    # command :  python manage.py scrapper_tester --path allsop.py
     # without arguments
-    # command : python manage.py tester
+    # command : python manage.py all_scrapper_tester
     def handle(self, *args, **options):
-        scrapper_runner.run()
+        file_name = options['path'][:-3]
+        # from options['path'] import run
+        # execfile('./scrappers/allsop.py',glob={})
+        # print("here")

@@ -81,4 +81,7 @@ class AllSop:
 
 
 def run():
+    print("here")
     AllSop().scraper()
+
+
