@@ -1,9 +1,6 @@
 import requests
-import os
-import json
-import re
-import datetime
-from extraction_services.models import HouseAuction , ErrorReport
+
+from extraction_services.models import HouseAuction, ErrorReport
 
 
 class AllSop:
@@ -39,7 +36,7 @@ class AllSop:
             return float(price) * 100000
 
     def parser(self, data):
-        data_array = []
+
         for json_data in data['data']['results']:
             reference_no = "-".join(json_data["reference"].split())
             url = f"https://auctions.allsop.co.uk/api/lot/reference/{reference_no}?react"
@@ -55,30 +52,34 @@ class AllSop:
             image_url = f"https://ams-auctions-production-storage.s3.eu-west-2.amazonaws.com/image_cache/{image_id}---auto--.jpg"
             data_hash = {
                 # "_id": details["version"]["allsop_auctionid"],
-                "price": price,
-                "picture_link": image_url,
-                "property_description": features,
-                "property_link": res.url,
-                "address": details["version"]['allsop_property']['allsop_name'],
-                "postal_code": details["version"]['allsop_property']['allsop_postcode'],
-                "number_of_bedrooms": details["version"]['allsop_property']['allsop_bedrooms'],
-                "property_type": details['version']['tenancy_type'],
-                "tenure": details['version']['allsop_propertytenure'],
-                "auction_date": auction_date,
-                "auction_hour": auc_hours,
-                "auction_venue": details['version']['allsop_auction']['allsop_venue'],
-                "domain": "https://www.auctionhouse.co.uk/"
+                "price": str(price),
+                "picture_link": str(image_url),
+                "property_description": str(features),
+                "property_link": str(res.url),
+                "address": str(details["version"]['allsop_property']['allsop_name']),
+                "postal_code": str(details["version"]['allsop_property']['allsop_postcode']),
+                "number_of_bedrooms": str(details["version"]['allsop_property']['allsop_bedrooms']),
+                "property_type": str(details['version']['tenancy_type']),
+                "tenure": str(details['version']['allsop_propertytenure']),
+                "auction_date": str(auction_date),
+                "auction_hour": str(auc_hours),
+                "auction_venue": str(details['version']['allsop_auction']['allsop_venue']),
+                "domain": str("https://www.auctionhouse.co.uk/")
             }
 
             try:
                 HouseAuction.objects.create(**data_hash)
             except BaseException as be:
-                print(be)
-                ErrorReport.objects.create(file_name="model error", error=str(be))
+                report = {
+                    "file_name": "model error",
+                    "error": str(be),
+                    "path": " "
+                }
+                ErrorReport.objects.create(**report)
 
-            data_array.append(data_hash)
 
-        return data_array
+
+
 
     def scraper(self):
         response = self.connect_to(self.URL)
@@ -88,4 +89,7 @@ class AllSop:
 
 
 def run():
-    AllSop().scraper()
+
+        AllSop().scraper()
+
+
