@@ -1,14 +1,8 @@
 import importlib
+from django.core.management.base import BaseCommand
 
-from cffi.setuptools_ext import execfile
-from django.core.management.base import BaseCommand, CommandError
-import json
-import re
 
-from scrappers import scrapper_runner
-from scrappers import *
 
-# from directory_services import models
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
