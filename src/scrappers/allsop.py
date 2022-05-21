@@ -1,6 +1,6 @@
 import requests
 
-from extraction_services.models import HouseAuction, ErrorReport
+from extraction_services.models import HouseAuction
 
 
 class AllSop:
@@ -62,7 +62,7 @@ class AllSop:
                 "number_of_bedrooms": details["version"]['allsop_property']['allsop_bedrooms'],
                 "property_type": details['version']['tenancy_type'],
                 "tenure": details['version']['allsop_propertytenure'],
-                "auction_datetime": auction_date,
+                "auction_datetime": auction_date, #TODO : combine date and hour
                 # "auction_hour": auc_hours,  combine it with auction_date_time
                 "auction_venue": details['version']['allsop_auction']['allsop_venue'],
                 "source": "auctionhouse.co.uk"
