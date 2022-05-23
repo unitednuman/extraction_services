@@ -2,9 +2,7 @@ import math
 from django.db.models import Q
 
 from rest_framework import serializers
-from .models import  HouseAuction
-
-
+from .models import HouseAuction, ErrorReport
 
 
 class HouseAuctionSerializer(serializers.ModelSerializer):
@@ -31,4 +29,7 @@ class HouseAuctionSerializer(serializers.ModelSerializer):
     #     }
 
 
-
+class ErrorReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ErrorReport
+        fields = '__all__'

@@ -8,8 +8,8 @@ from drf_yasg.utils import swagger_auto_schema
 # from utils.permissions import IsAppAdmin, IsNonAdminUser
 from rest_framework import filters
 from django.db.models import Q
-from .models import HouseAuction
-from .serializers import HouseAuctionSerializer
+from .models import HouseAuction , ErrorReport
+from .serializers import HouseAuctionSerializer, ErrorReportSerializer
 from django.db import connection
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 import datetime
@@ -76,3 +76,16 @@ class HouseAuctionViewDetails(generics.GenericAPIView):
             toy_data.delete()
             return response.Response(status=status.HTTP_204_NO_CONTENT)
         return response.Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class ErrorView(generics.GenericAPIView):
+    queryset = ErrorReport.objects.all()
+    serializer_class = ErrorReportSerializer
+
+
+
+    def get(self, request, *args, **kwargs):
+        data = self.queryset.all()
+        paginated_response = self.paginate_queryset(data)
+        serialized = self.get_serializer(paginated_response, many=True)
+        return self.get_paginated_response(serialized.data)
