@@ -1,4 +1,6 @@
 import requests
+import dateparser
+from price_parser import parse_price
 
 class AuctionHouseLondon:
     DOMAIN = 'https://auctionhouselondon.co.uk/'
@@ -13,33 +15,20 @@ class AuctionHouseLondon:
         print(f"------ Request Response : {re.status_code} --------")
         return re
 
-    def prepare_price(self, price):
-        try:
-           price = float(price.split('-')[0].replace('£', '').replace('+', '').replace(',', ''))
-        except Exception as ex:
-            print(f"Exception in Price Function - {ex}")
-        return price
-
     def parser(self, data):
         data_array = []
         for json_data in data['result']['pageContext']['auctions']:
             for lot_details in json_data['Lots']:
                 if not lot_details:
                     pass
-                price = self.prepare_price(lot_details['GuidePrice'])
+                price = parse_price(lot_details['GuidePrice']).amount_float if lot_details['GuidePrice'] else None
                 full_address = lot_details['FullAddress']
                 url_id = "-".join(full_address.replace(',','').split())
                 lot_id = lot_details['ID']
                 url = f"https://auctionhouselondon.co.uk/page-data/lot/{url_id}-{lot_id}/page-data.json".lower()
-                try:
-                    inner_res = self.connect_to(url)
-                except Exception as ex:
-                    print(f"URL issue {ex}")
-
+                inner_res = self.connect_to(url)
                 inner_details = inner_res.json()['result']['pageContext']
-                auction_date = inner_details['AuctionDate']
-                auction_hours = auction_date.split('T')[1]
-                auc_hours = ":".join([auction_hours.split(":")[0], auction_hours.split(":")[1]])
+                auction_date = dateparser.parse(inner_details['AuctionDate']).timestamp() * 1000 if inner_details['AuctionDate'] else None
                 data_hash = {
                     "_id": lot_id,
                     "guidePrice": price,
@@ -51,11 +40,8 @@ class AuctionHouseLondon:
                     "numberOfBedrooms": inner_details['Bedrooms'],
                     "propertyType": inner_details['PropertyType'],
                     "tenure": inner_details['TenureType'],
-                    "auctionDetails": {
-                        "date": auction_date,
-                        "hour": auc_hours,
-                        "venue": None,
-                    },
+                    "auction_datetime": auction_date,
+                    "auction_venue": None,
                     "domain": self.DOMAIN
                 }
                 data_array.append(data_hash)
@@ -68,7 +54,6 @@ class AuctionHouseLondon:
         item = self.parser(data)
 
 
-try:
+
+def run():
     AuctionHouseLondon().scraper()
-except Exception as e:
-    print(e)
