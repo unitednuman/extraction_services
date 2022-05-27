@@ -1,0 +1,8 @@
+DEBUG=True
+ENV=DEV
+SECRET_KEY=d@sh!yi-g0ma)zz=_a+10d6%wim(zbsp*%wsy4d$5#)@ugw-i6-dev-env-key
+POSTGRES_HOST=
+POSTGRES_DB=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+REDIS_HOST=redis
