@@ -10,6 +10,7 @@ import pytz
 # Create your models here.
 class HouseAuction(TimeStampedModel):
     price = models.FloatField(null=True, blank=True)
+    currency_type = models.CharField(max_length=10, null=True, blank=True)
     picture_link = models.TextField(null=True, blank=True)
     property_description = models.TextField(null=True, blank=True)
     property_link = models.TextField(null=True, blank=True , unique=True)

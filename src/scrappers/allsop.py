@@ -54,6 +54,7 @@ class AllSop:
             data_hash = {
                 # "_id": details["version"]["allsop_auctionid"],
                 "price": price,
+                "currency_type":"$", #TODO: Add currency type
                 "picture_link": image_url,
                 "property_description": features,
                 "property_link": res.url,
