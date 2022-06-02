@@ -78,7 +78,7 @@ Q_CLUSTER = {
     }
 }
 
-#env('REDIS_HOST')
+# env('REDIS_HOST')
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -218,7 +218,7 @@ SIMPLE_JWT = {
 # }
 
 # AUTH_USER_MODEL = 'user_service.User'
-
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'Bearer': {

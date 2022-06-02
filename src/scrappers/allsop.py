@@ -1,6 +1,6 @@
 import requests
-
-from extraction_services.models import HouseAuction
+from scrappers.traceback import get_traceback
+from extraction_services.models import HouseAuction, ErrorReport
 
 
 class AllSop:
@@ -39,40 +39,48 @@ class AllSop:
     def parser(self, data):
 
         for json_data in data['data']['results']:
-            reference_no = "-".join(json_data["reference"].split())
-            url = f"https://auctions.allsop.co.uk/api/lot/reference/{reference_no}?react"
-            res = self.connect_to(url)
-            details = res.json()
-            price_str = details['version']['lot']['guide_price_text']
-            price = self.prepare_price(price_str)
-            auction_date = details['version']['allsop_auction']['allsop_auctiondate']
-            auction_hours = auction_date.split('T')[1]
-            auc_hours = ":".join([auction_hours.split(":")[0], auction_hours.split(":")[1]])
-            features = "\n".join([value['value'] for value in details["version"]['features']])
-            image_id = details["version"]['images'][0]['file_id']
-            image_url = f"https://ams-auctions-production-storage.s3.eu-west-2.amazonaws.com/image_cache/{image_id}---auto--.jpg"
-            data_hash = {
-                # "_id": details["version"]["allsop_auctionid"],
-                "price": price,
-                "currency_type":"$", #TODO: Add currency type
-                "picture_link": image_url,
-                "property_description": features,
-                "property_link": res.url,
-                "address": details["version"]['allsop_property']['allsop_name'],
-                "postal_code": details["version"]['allsop_property']['allsop_postcode'],
-                "number_of_bedrooms": details["version"]['allsop_property']['allsop_bedrooms'],
-                "property_type": details['version']['tenancy_type'],
-                "tenure": details['version']['allsop_propertytenure'],
-                "auction_datetime": auction_date, #TODO : combine date and hour
-                # "auction_hour": auc_hours,  combine it with auction_date_time
-                "auction_venue": details['version']['allsop_auction']['allsop_venue'],
-                "source": "auctionhouse.co.uk"
-            }
+            try:
+                reference_no = "-".join(json_data["reference"].split())
+                url = f"https://auctions.allsop.co.uk/api/lot/reference/{reference_no}?react"
+                res = self.connect_to(url)
+                details = res.json()
+                price_str = details['version']['lot']['guide_price_text']
+                price = self.prepare_price(price_str)
+                auction_date = details['version']['allsop_auction']['allsop_auctiondate']
+                auction_hours = auction_date.split('T')[1]
+                auc_hours = ":".join([auction_hours.split(":")[0], auction_hours.split(":")[1]])
+                features = "\n".join([value['value'] for value in details["version"]['features']])
+                image_id = details["version"]['images'][0]['file_id']
+                image_url = f"https://ams-auctions-production-storage.s3.eu-west-2.amazonaws.com/image_cache/{image_id}---auto--.jpg"
+                data_hash = {
+                    # "_id": details["version"]["allsop_auctionid"],
+                    "price": price,
+                    "currency_type":"$", #TODO: Add currency type
+                    "picture_link": image_url,
+                    "property_description": features,
+                    "property_link": res.url,
+                    "address": details["version"]['allsop_property']['allsop_name'],
+                    "postal_code": details["version"]['allsop_property']['allsop_postcode'],
+                    "number_of_bedrooms": details["version"]['allsop_property']['allsop_bedrooms'],
+                    "property_type": details['version']['tenancy_type'],
+                    "tenure": details['version']['allsop_propertytenure'],
+                    "auction_datetime": auction_date, #TODO : combine date and hour
+                    # "auction_hour": auc_hours,  combine it with auction_date_time
+                    "auction_venue": details['version']['allsop_auction']['allsop_venue'],
+                    "source": "auctionhouse.co.uk"
+                }
 
-            if house_auction := HouseAuction.objects.filter(property_link=res.url):
-                house_auction.update(**data_hash)
-            else:
-                HouseAuction.objects.create(**data_hash)
+                if house_auction := HouseAuction.objects.filter(property_link=res.url):
+                    house_auction.update(**data_hash)
+                else:
+                    HouseAuction.objects.create(**data_hash)
+            except BaseException as be:
+                _traceback = get_traceback()
+                if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
+                    error_report.count = error_report.count + 1
+                    error_report.save()
+                else:
+                    ErrorReport.objects.create(file_name="allsop.py", error=str(be), trace_back=_traceback)
 
     def scraper(self):
         response = self.connect_to(self.URL)
