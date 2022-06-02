@@ -21,5 +21,14 @@ def run():
             module.run()
         except BaseException as be:
             logging.error("error in :", name)
-            ErrorReport.objects.create(file_name=name, error=str(be), trace_back=str(get_traceback()))
+            _traceback = get_traceback()
+            if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
+                error_report.count = error_report.count + 1
+                error_report.save()
+            else:
+                ErrorReport.objects.create(file_name=name, error=str(be), trace_back=_traceback)
+
+
+
+
     logging.info("Completed!")
