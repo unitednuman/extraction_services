@@ -24,9 +24,9 @@ class AuctionHouse:
             'Upgrade-Insecure-Requests': '1',
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36',
         }
-        re = requests.get(url, headers=headers, data={})
-        print(f"------ Request Response : {re.status_code} --------")
-        return re
+        res = requests.get(url, headers=headers, data={})
+        print(f"------ Request Response : {res.status_code} --------")
+        return res
 
     def parser(self, response):
         for lot_detail in response.xpath("//div[@class='col-sm-12 col-md-8 col-lg-6 text-center lot-search-result']"):
