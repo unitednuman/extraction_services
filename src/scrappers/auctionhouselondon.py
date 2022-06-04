@@ -1,4 +1,3 @@
-from locale import currency
 import requests
 import dateparser
 from price_parser import parse_price
@@ -14,24 +13,24 @@ class AuctionHouseLondon:
 
     def connect_to(self, url, headers={}, payload={}):
         print(url)
-        re = requests.get(url, headers=headers, data=payload)
-        print(f"------ Request Response : {re.status_code} --------")
-        return re
+        res = requests.get(url, headers=headers, data=payload)
+        print(f"------ Request Response : {res.status_code} --------")
+        return res
 
-    def currency_iso_name(self, currency):
+    def currency_iso_name(self, currency_symbol):
         symbols = {
             "£": "GBP",
             "$": "USD",
         }
         try:
-            return symbols[currency]
+            return symbols[currency_symbol]
         except:
-            return "Currency Not Found"
+            raise Exception("Currency Not Found")
 
     def parser(self, data):
-        try:
-            for json_data in data['result']['pageContext']['auctions']:
-                for lot_details in json_data['Lots']:
+        for json_data in data['result']['pageContext']['auctions']:
+            for lot_details in json_data['Lots']:
+                try:
                     if not lot_details:
                         pass
                     parsed_price = parse_price(lot_details['GuidePrice']) if lot_details['GuidePrice'] else None
@@ -58,19 +57,19 @@ class AuctionHouseLondon:
                         "tenure": inner_details['TenureType'],
                         "auction_datetime": auction_date,
                         "auction_venue": None,
-                        "source": self.DOMAIN
+                        "source": "auctionhouselondon.co.uk"
                     }
                     if house_auction := HouseAuction.objects.filter(property_link=res.url):
                         house_auction.update(**data_hash)
                     else:
                         HouseAuction.objects.create(**data_hash)
-        except BaseException as be:
-            _traceback = get_traceback()
-            if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
-                error_report.count = error_report.count + 1
-                error_report.save()
-            else:
-                ErrorReport.objects.create(file_name="allsop.py", error=str(be), trace_back=_traceback)
+                except BaseException as be:
+                    _traceback = get_traceback()
+                    if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
+                        error_report.count = error_report.count + 1
+                        error_report.save()
+                    else:
+                        ErrorReport.objects.create(file_name="auctionhouselondon.py", error=str(be), trace_back=_traceback)
 
     def scraper(self):
         response = self.connect_to(self.URL)
