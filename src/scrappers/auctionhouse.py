@@ -28,44 +28,62 @@ class AuctionHouse:
         print(f"------ Request Response : {res.status_code} --------")
         return res
 
+    def currency_iso_name(self, currency):
+        symbols = {
+            "£": "GBP",
+            "$": "USD",
+        }
+        try:
+            return symbols[currency]
+        except:
+            return "Currency Not Found"    
+
     def parser(self, response):
-        for lot_detail in response.xpath("//div[@class='col-sm-12 col-md-8 col-lg-6 text-center lot-search-result']"):
-            if "Sold" in lot_detail.xpath(".//div[@class='lot-search-wrapper grid-item']//div//text()")[4]:
-                continue
-            lot_link = self.DOMAIN + lot_detail.xpath(".//a//@href")[0]
-            res = self.connect_to(lot_link)
-            parsed_content = html.fromstring(res.content)
-            price = parse_price(parsed_content.xpath("//h4[@class='guideprice']//text()")[0]).amount_float
-            currency = parse_price(parsed_content.xpath("//h4[@class='guideprice']//text()")[0]).currency
-            full_address = parsed_content.xpath("//div[@id='lotnav']//p//text()")[0]
-            url = res.url
-            lot_id = url.split("/")[-1]
-            thumbnail = self.DOMAIN + parsed_content.xpath("//div[@class='item img-thumbnail-wrapper active']//img//@src")[0]
-            bedrooms = [text for text in parsed_content.xpath("//div[@class='lot-info-right']//li//text()") if "Bedroom" in text][0].split()[0]
-            tenure = [text for text in parsed_content.xpath("//div[@class='lot-info-right']//li") if "Tenure" in text.text_content()][0].text_content().split(":")[-1].strip()
-            venue = [text for text in parsed_content.xpath("//p[@class='auction-info-header']") if "Venue" in text.text_content()][0].getnext().text_content().replace(',','').strip()
-            auction_date = dateparser.parse(parsed_content.xpath("//div[@class='auction-date']//p")[-1].text_content() + " "+ parsed_content.xpath("//div[@class='auction-time']//p")[-1].text_content()).isoformat()
-            data_hash = {}
-            data_hash = {
-                "_id": lot_id,
-                "guidePrice": price,
-                "currency": currency,
-                "pictureLink": thumbnail,
-                "propertyDescription": parsed_content.xpath("//div[@class='preline']")[0].text_content(),
-                "propertyLink": url,
-                "address": full_address,
-                "postcode": full_address.split(",")[-1],
-                "numberOfBedrooms": bedrooms,
-                "propertyType": None,
-                "tenure": tenure,
-                "auction_datetime": auction_date,
-                "auction_venue": venue,
-                "domain": self.DOMAIN
-            }
-            if house_auction := HouseAuction.objects.filter(property_link=res.url):
-                house_auction.update(**data_hash)
+        try:
+            for lot_detail in response.xpath("//div[@class='col-sm-12 col-md-8 col-lg-6 text-center lot-search-result']"):
+                if "Sold" in lot_detail.xpath(".//div[@class='lot-search-wrapper grid-item']//div//text()")[4]:
+                    continue
+                lot_link = self.DOMAIN + lot_detail.xpath(".//a//@href")[0]
+                res = self.connect_to(lot_link)
+                parsed_content = html.fromstring(res.content)
+                price = parse_price(parsed_content.xpath("//h4[@class='guideprice']//text()")[0]).amount_float
+                currency = self.currency_iso_name(parse_price(parsed_content.xpath("//h4[@class='guideprice']//text()")[0]).currency)
+                full_address = parsed_content.xpath("//div[@id='lotnav']//p//text()")[0]
+                url = res.url
+                lot_id = url.split("/")[-1]
+                thumbnail = self.DOMAIN + parsed_content.xpath("//div[@class='item img-thumbnail-wrapper active']//img//@src")[0]
+                bedrooms = [text for text in parsed_content.xpath("//div[@class='lot-info-right']//li//text()") if "Bedroom" in text][0].split()[0]
+                tenure = [text for text in parsed_content.xpath("//div[@class='lot-info-right']//li") if "Tenure" in text.text_content()][0].text_content().split(":")[-1].strip()
+                venue = [text for text in parsed_content.xpath("//p[@class='auction-info-header']") if "Venue" in text.text_content()][0].getnext().text_content().replace(',','').strip()
+                auction_date = dateparser.parse(parsed_content.xpath("//div[@class='auction-date']//p")[-1].text_content() + " "+ parsed_content.xpath("//div[@class='auction-time']//p")[-1].text_content())
+                data_hash = {}
+                data_hash = {
+                    "_id": lot_id,
+                    "price": price,
+                    "currency_type": currency,
+                    "picture_link": thumbnail,
+                    "property_description": parsed_content.xpath("//div[@class='preline']")[0].text_content(),
+                    "property_link": url,
+                    "address": full_address,
+                    "postal_code": full_address.split(",")[-1],
+                    "number_of_bedrooms": bedrooms,
+                    "property_type": None,
+                    "tenure": tenure,
+                    "auction_datetime": auction_date,
+                    "auction_venue": venue,
+                    "source": self.DOMAIN
+                }
+                if house_auction := HouseAuction.objects.filter(property_link=res.url):
+                    house_auction.update(**data_hash)
+                else:
+                    HouseAuction.objects.create(**data_hash)
+        except BaseException as be:
+            _traceback = get_traceback()
+            if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
+                error_report.count = error_report.count + 1
+                error_report.save()
             else:
-                HouseAuction.objects.create(**data_hash)
+                ErrorReport.objects.create(file_name="allsop.py", error=str(be), trace_back=_traceback)            
       
 
     def scraper(self):
