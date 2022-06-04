@@ -33,9 +33,6 @@ class AllSop:
         except:
             raise Exception(f"Currency symbol \"{currency_symbol}\" not matching with available ones.")
 
-    def prepare_price(self,price):
-        pass
-
     def parser(self, data):
 
         for json_data in data['data']['results']:
