@@ -35,7 +35,7 @@ class AuctionHouseLondon:
                         pass
                     parsed_price = parse_price(lot_details['GuidePrice']) if lot_details['GuidePrice'] else None
                     price = parsed_price.amount_float
-                    currency = self.currency_iso_name(parse_price.currency)
+                    currency = self.currency_iso_name(parsed_price.currency)
                     full_address = lot_details['FullAddress']
                     url_id = "-".join(full_address.replace(',','').split())
                     lot_id = lot_details['ID']
