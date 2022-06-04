@@ -25,7 +25,7 @@ class AuctionHouseLondon:
         try:
             return symbols[currency_symbol]
         except:
-            raise Exception("Currency Not Found")
+            raise Exception(f"Currency symbol \"{currency_symbol}\" not matching with available ones.")
 
     def parser(self, data):
         for json_data in data['result']['pageContext']['auctions']:
