@@ -18,7 +18,8 @@ def run():
         logging.info("Running :", name)
         try:
             module = importlib.import_module(f"scrappers.{name[:-3]}")
-            module.run()
+            if hasattr(module, 'run'):
+                module.run()
         except BaseException as be:
             logging.error("error in :", name)
             _traceback = get_traceback()
