@@ -26,20 +26,19 @@ def currency_iso_name(currency):
     try:
         return symbols[currency]
     except:
-        return "Currency Not Found"
+        raise Exception(f"Currency symbol \"{currency}\" not matching with available ones.")
 
 
 def prepare_price(price):
-    price_str = Price.fromstring(price)
-    price = price_str.amount_float
-    currency = price_str.currency
+    price_obj = Price.fromstring(price)
+    price = price_obj.amount_float
+    currency = price_obj.currency
     currency = currency_iso_name(currency)
     return price, currency
 
 
 def parse_auction_date(auction_date):
-    try:
-        auction_date = dateparser.parse(auction_date)
+    auction_date = dateparser.parse(auction_date)
+    if auction_date is not None:
         return auction_date
-    except Exception as e:
-        raise ValueError("Unable to parse auction date", e)
+    raise Exception(f"Unable to parse date from \"{auction_date}\" string")
