@@ -25,17 +25,15 @@ def parse_property(auction_id, lot_id, auction_date, venue):
     currency = 'GBP'
     propertyLink = url + json_data['lot']['link']
     data_hash = {
-        # "_id": details["version"]["allsop_auctionid"],
         "price": price,
-        "currency_type": currency,  # TODO: Add currency type
+        "currency_type": currency,
         "picture_link": pictureLink,
         "property_description": description,
         "property_link": propertyLink,
         "address": address,
         "postal_code": postal_code,
         "tenure": tenure,
-        "auction_datetime": auction_datetime,  # TODO : combine date and hour
-        # "auction_hour": auc_hours,  combine it with auction_date_time
+        "auction_datetime": auction_datetime,
         "auction_venue": venue,
         "source": "autions.savills.co.uk"
     }
