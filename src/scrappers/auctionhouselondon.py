@@ -13,9 +13,9 @@ class AuctionHouseLondon:
         pass
 
     def connect_to(self, url, headers={}, payload={}):
-        print(url)
+        # print(url)
         res = requests.get(url, headers=headers, data=payload)
-        print(f"------ Request Response : {res.status_code} --------")
+        # print(f"------ Request Response : {res.status_code} --------")
         return res
 
     def currency_iso_name(self, currency_symbol):

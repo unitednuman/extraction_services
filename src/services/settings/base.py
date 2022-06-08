@@ -62,10 +62,11 @@ INSTALLED_APPS = [
 ]
 Q_CLUSTER = {
     'name': 'cyber-plush-{}'.format(ENV),
+    'retry': 36001,
     'workers': 8,
     'recycle': 500,
     'sync': False,
-    'timeout': 60,
+    'timeout': 36000,
     'compress': True,
     'save_limit': 250,
     'queue_limit': 500,
