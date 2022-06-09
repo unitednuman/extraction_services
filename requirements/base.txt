@@ -18,3 +18,4 @@ Fabric==2.7.0
 playwright==1.22.0
 lxml==4.9.0
 dateparser==1.1.1
+price-parser==0.3.4
