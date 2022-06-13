@@ -1,6 +1,7 @@
 import requests
 import json
 from scrappers.traceback import get_traceback
+from scrappers.base_scrapper import load_json
 from extraction_services.models import HouseAuction, ErrorReport
 
 catalogue_url = "https://auctions.savills.co.uk/index.php?option=com_calendar&format=json&task=upcoming.getAuctions"
@@ -11,10 +12,10 @@ payload = "current_page=1&auctions_per_page=100"
 def parse_property(auction_id, lot_id, auction_date, venue):
     proccess_lot_url = "https://auctions.savills.co.uk/index.php?option=com_bidding&format=json&task=commission.processLot"
     processlot_payload = {'auction_id': auction_id,
-               'lot_id': lot_id}
+                          'lot_id': lot_id}
     url = "https://auctions.savills.co.uk/"
     response = requests.post(proccess_lot_url, data=processlot_payload)
-    json_data = json.loads(response.content)
+    json_data = load_json(response.content)
     description = json_data['lot']['description']
     pictureLink = url + json_data['lot']['images'][0]['large_image']
     price = json_data['lot']['low_estimate']
@@ -56,7 +57,7 @@ def parse_lot(auction_id, auction_date, venue):
                     'sort_by': ''}
     response = requests.post(lot_url, data=lots_payload)
     offset = 0
-    json_data = json.loads(response.content)
+    json_data = load_json(response.content)
     total_pages = int(int(json_data['total_lots']) / 100)
     # print("Total Pages: ", total_pages + 1)
     for page in range(total_pages + 1):
@@ -79,7 +80,7 @@ def parse_lot(auction_id, auction_date, venue):
 
 def run():
     response = requests.request("POST", catalogue_url, data=payload)
-    data = json.loads(response.content)
+    data = load_json(response.content)
     count = 0
     for auction in data['auctions']:
         if count >= 2:

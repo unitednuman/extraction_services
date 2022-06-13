@@ -1,6 +1,15 @@
 import dateparser
 from price_parser import Price
 import logging
+import json
+from json import JSONDecodeError
+
+
+def load_json(content):
+    try:
+        json.loads(content)
+    except JSONDecodeError as ex:
+        raise Exception(f"Unable to load JSON with content = {content}, with exception {ex}")
 
 
 def get_text(node, index, xpath):
