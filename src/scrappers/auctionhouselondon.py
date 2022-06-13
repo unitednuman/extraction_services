@@ -4,6 +4,7 @@ from price_parser import parse_price
 from scrappers.traceback import get_traceback
 from extraction_services.models import HouseAuction, ErrorReport
 
+
 class AuctionHouseLondon:
     DOMAIN = 'https://auctionhouselondon.co.uk/'
     URL = 'https://auctionhouselondon.co.uk/page-data/future-auctions/page-data.json'
@@ -12,9 +13,9 @@ class AuctionHouseLondon:
         pass
 
     def connect_to(self, url, headers={}, payload={}):
-        print(url)
+        # print(url)
         res = requests.get(url, headers=headers, data=payload)
-        print(f"------ Request Response : {res.status_code} --------")
+        # print(f"------ Request Response : {res.status_code} --------")
         return res
 
     def currency_iso_name(self, currency_symbol):
@@ -37,7 +38,7 @@ class AuctionHouseLondon:
                     price = parsed_price.amount_float
                     currency = self.currency_iso_name(parsed_price.currency)
                     full_address = lot_details['FullAddress']
-                    url_id = "-".join(full_address.replace(',','').split())
+                    url_id = "-".join(full_address.replace(',', '').split())
                     lot_id = lot_details['ID']
                     url = f"https://auctionhouselondon.co.uk/page-data/lot/{url_id}-{lot_id}/page-data.json".lower()
                     inner_res = self.connect_to(url)
@@ -49,7 +50,7 @@ class AuctionHouseLondon:
                         "currency_type": currency,
                         "picture_link": lot_details['Thumbnail'],
                         "property_description": inner_details['Description'],
-                        "property_link": url.replace('page-data.json','').replace('/page-data',''),
+                        "property_link": url.replace('page-data.json', '').replace('/page-data', ''),
                         "address": full_address,
                         "postal_code": lot_details['PostCode'],
                         "number_of_bedrooms": inner_details['Bedrooms'],
@@ -69,7 +70,8 @@ class AuctionHouseLondon:
                         error_report.count = error_report.count + 1
                         error_report.save()
                     else:
-                        ErrorReport.objects.create(file_name="auctionhouselondon.py", error=str(be), trace_back=_traceback)
+                        ErrorReport.objects.create(file_name="auctionhouselondon.py", error=str(be),
+                                                   trace_back=_traceback)
 
     def scraper(self):
         response = self.connect_to(self.URL)

@@ -80,7 +80,7 @@ def start():
         for property in result.xpath("//a[@class='PropertyCard']"):
             try:
                 url = property.xpath('.')[0].attrib['href']
-                print(url)
+                # print(url)
                 parse_property(page, url)
             except BaseException as be:
                 _traceback = get_traceback()

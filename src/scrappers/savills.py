@@ -43,7 +43,7 @@ def parse_property(auction_id, lot_id, auction_date, venue):
         HouseAuction.objects.create(**data_hash)
 
     # print(description, pictureLink, price, tenure, address, postal_code, auction_date, currency, domain, propertyLink)
-    print(propertyLink, venue)
+    # print(propertyLink, venue)
 
 
 def parse_lot(auction_id, auction_date, venue):
@@ -58,9 +58,9 @@ def parse_lot(auction_id, auction_date, venue):
     offset = 0
     json_data = json.loads(response.content)
     total_pages = int(int(json_data['total_lots']) / 100)
-    print("Total Pages: ", total_pages + 1)
+    # print("Total Pages: ", total_pages + 1)
     for page in range(total_pages + 1):
-        print("Page Number: ", page + 1)
+        # print("Page Number: ", page + 1)
         for lot in json_data['lots']:
             try:
                 lot_id = lot["id"]
