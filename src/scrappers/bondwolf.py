@@ -41,8 +41,7 @@ def parse_property(page, url):
     tenure = get_text(result, 0, "//h4[contains(text(), 'Tenure')]//parent::div")
 
     price_text = result.xpath("//h2[@class='h1 mb-1 PropertyHeader-price-value']")[0].text_content().strip()
-    price = prepare_price(price_text)[0]
-    currency = prepare_price(price_text)[1]
+    price, currency = prepare_price(price_text)
     address = result.xpath("//div[@class='PropertyHeader-description pr-lg-5']//h1")[0].text_content().strip()
     postal_code = address.split(',')[-1]
     domain = "https://www.bondwolfe.com/"

@@ -1,12 +1,13 @@
 import dateparser
 from price_parser import Price
+import logging
 
 
 def get_text(node, index, xpath):
     try:
         return node.xpath(xpath)[index].text
     except Exception as e:
-        print("attribute finding error", e, xpath)
+        logging.debug(f"could not find text with Xpath = {xpath}, with exception {e}")
         return ''
 
 
@@ -14,7 +15,7 @@ def get_attrib(node, xpath, index, attribute):
     try:
         return node.xpath(xpath)[index].attrib[attribute]
     except Exception as e:
-        print("attribute finding error", e, attribute)
+        logging.debug(f"could not find Attribute with Xpath = {xpath}, with exception {e}")
         return ''
 
 
@@ -37,8 +38,8 @@ def prepare_price(price):
     return price, currency
 
 
-def parse_auction_date(auction_date):
-    auction_date = dateparser.parse(auction_date)
+def parse_auction_date(auction_date_str):
+    auction_date = dateparser.parse(auction_date_str)
     if auction_date is not None:
         return auction_date
     raise Exception(f"Unable to parse date from \"{auction_date}\" string")
