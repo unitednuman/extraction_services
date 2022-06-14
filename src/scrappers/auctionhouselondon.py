@@ -44,7 +44,7 @@ class AuctionHouseLondon:
                     inner_details = inner_res.json()['result']['pageContext']
                     auction_date = dateparser.parse(inner_details['AuctionDate'])
                     data_hash = {
-                        "_id": lot_id,
+                        #"_id": lot_id,
                         "price": price,
                         "currency_type": currency,
                         "picture_link": lot_details['Thumbnail'],
