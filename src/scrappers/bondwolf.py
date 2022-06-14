@@ -1,10 +1,8 @@
 import time
-
 import requests
 from lxml import html
-import dateparser
-from price_parser import Price
 import json
+from scrappers.base_scrapper import *
 from scrappers.traceback import get_traceback
 from extraction_services.models import HouseAuction, ErrorReport
 from playwright.sync_api import sync_playwright
@@ -30,41 +28,6 @@ headers = {
 }
 
 
-def get_text(node, index, xpath):
-    try:
-        return node.xpath(xpath)[index].text_content().strip()
-    except Exception as e:
-        print("attribute finding error", e, xpath)
-        return ''
-
-
-def currency_iso_name(currency):
-    symbols = {
-        "£": "GBP",
-        "$": "USD",
-    }
-    try:
-        return symbols[currency]
-    except:
-        return "Currency Not Found"
-
-
-def prepare_price(price):
-    price_str = Price.fromstring(price)
-    price = price_str.amount_float
-    currency = price_str.currency
-    currency = currency_iso_name(currency)
-    return price, currency
-
-
-def parse_auction_date(auction_date):
-    try:
-        auction_date = dateparser.parse(auction_date)
-        return auction_date
-    except Exception as e:
-        raise ValueError("Unable to parse auction date", e)
-
-
 def parse_property(page, url):
     page.goto(url)
     time.sleep(5)
@@ -75,31 +38,30 @@ def parse_property(page, url):
         result.xpath("//div[@class='AuctionDetails-datetime']//h2")[0].text_content().strip())
     description = result.xpath("//h4[contains(text(), 'Property Description')]//parent::div")[0].text_content().strip()
 
-    tenure = get_text(result, "//h4[contains(text(), 'Tenure')]//parent::div", 0)
+    tenure = get_text(result, 0, "//h4[contains(text(), 'Tenure')]//parent::div")
 
     price_text = result.xpath("//h2[@class='h1 mb-1 PropertyHeader-price-value']")[0].text_content().strip()
-    price = prepare_price(price_text)[0]
-    currency = prepare_price(price_text)[1]
+    price, currency = prepare_price(price_text)
     address = result.xpath("//div[@class='PropertyHeader-description pr-lg-5']//h1")[0].text_content().strip()
     postal_code = address.split(',')[-1]
     domain = "https://www.bondwolfe.com/"
     imagelink = result.xpath("//div[@class='slick-list draggable']//img")[0].attrib['src']
     propertyLink = page.url
-    venue = get_text(result, "//div[@class='AuctionDetails-location']//p", 0)
+    venue = get_text(result, 0, "//div[@class='AuctionDetails-location']//p")
     data_hash = {
         # "_id": details["version"]["allsop_auctionid"],
         "price": price,
-        "currency_type": "$",  # TODO: Add currency type
+        "currency_type": currency,
         "picture_link": imagelink,
         "property_description": description,
         "property_link": url,
         "address": address,
         "postal_code": postal_code,
-        "auction_datetime": auction_time,  # TODO : combine date and hour
-        # "auction_hour": auc_hours,  combine it with auction_date_time
+        "auction_datetime": auction_time,
         "auction_venue": venue,
-        "source": "https://www.bondwolfe.com/"
+        "source": "bondwolfe.com"
     }
+    print(data_hash)
     if house_auction := HouseAuction.objects.filter(property_link=url):
         house_auction.update(**data_hash)
     else:
