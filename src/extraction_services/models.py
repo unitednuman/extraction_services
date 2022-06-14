@@ -26,6 +26,6 @@ class HouseAuction(TimeStampedModel):
 
 class ErrorReport(TimeStampedModel):
     file_name = models.CharField(max_length=255, null=True, blank=True)
-    error = models.CharField(max_length=255, null=True, blank=True)
+    error = models.TextField(null=True, blank=True)
     trace_back = models.TextField(null=True, blank=True)
     count = models.IntegerField(default=1)
