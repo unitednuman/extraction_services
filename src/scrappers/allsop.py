@@ -49,7 +49,7 @@ class AllSop:
                 image_id = details["version"]['images'][0]['file_id']
                 image_url = f"https://ams-auctions-production-storage.s3.eu-west-2.amazonaws.com/image_cache/{image_id}---auto--.jpg"
                 data_hash = {
-                    "_id": details["version"]["allsop_auctionid"],
+                    #"_id": details["version"]["allsop_auctionid"],
                     "price": price,
                     "currency_type":currency,
                     "picture_link": image_url,
@@ -80,7 +80,6 @@ class AllSop:
     def scraper(self):
         response = self.connect_to(self.URL)
         self.parser(response.json())
-        
 
 def run():
     AllSop().scraper()
