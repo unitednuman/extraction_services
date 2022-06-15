@@ -198,27 +198,6 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
-# DOMAIN = 'tyudirectory.org'
-# SITE_NAME = 'tyudirectory'
-
-# DJOSER = {
-#     'SEND_ACTIVATION_EMAIL': True,
-#     'SEND_CONFIRMATION_EMAIL': True,
-#     'ACTIVATION_URL': 'activation/{uid}/{token}',
-#     'PASSWORD_RESET_CONFIRM_URL': 'forgot/password/{uid}/{token}',
-#     'USER_CREATE_PASSWORD_RETYPE': True,
-#     'SET_PASSWORD_RETYPE': True,
-#     'PASSWORD_RESET_CONFIRM_RETYPE': True,
-#     'PASSWORD_CHANGED_EMAIL_CONFIRMATION': True,
-#     'SERIALIZERS': {
-#         'current_user': 'user_service.serializers.UserCustomSerializer',
-#         'user': 'user_service.serializers.UserCustomSerializer',
-#         'user_create_password_retype': 'user_service.serializers.UserCreatePasswordRetypeCustomSerializer'
-#     },
-#     'HIDE_USERS': False
-# }
-
-# AUTH_USER_MODEL = 'user_service.User'
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
@@ -231,5 +210,3 @@ SWAGGER_SETTINGS = {
 }
 
 API_VERSIONS = [1.0]
-
-# AUTHENTICATION_BACKENDS = ['auth_service.backend.EmailBackend']
