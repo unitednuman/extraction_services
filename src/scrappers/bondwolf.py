@@ -7,25 +7,7 @@ from scrappers.traceback import get_traceback
 from extraction_services.models import HouseAuction, ErrorReport
 from playwright.sync_api import sync_playwright
 
-start_url = "https://www.bondwolfe.com/wp-admin/admin-ajax.php"
-
-payload = "action=get_properties&page=1&total_pages=1&postsperpage=-1&orderby=lotnumber&location=&radius=&type=&minprice=&maxprice=&auction=&get_map=false&security=be579822a5"
-headers = {
-    'accept': '*/*',
-    'accept-encoding': 'gzip, deflate, br',
-    'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
-    'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    'origin': 'https://www.bondwolfe.com',
-    'referer': 'https://www.bondwolfe.com/auctions/properties/?location=&minprice=&maxprice=&type=&status=undefined&show=-1&pages=1&radius=&orderby=lotnumber&auction_id=',
-    'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="102", "Google Chrome";v="102"',
-    'sec-ch-ua-mobile': '?0',
-    'sec-ch-ua-platform': '"Windows"',
-    'sec-fetch-dest': 'empty',
-    'sec-fetch-mode': 'cors',
-    'sec-fetch-site': 'same-origin',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36',
-    'x-requested-with': 'XMLHttpRequest'
-}
+start_url = "https://www.bondwolfe.com/auctions/properties/?location=&minprice=&maxprice=&type="
 
 
 def parse_property(page, url):
@@ -70,16 +52,19 @@ def parse_property(page, url):
 
 def start():
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page()
-        response = requests.request("POST", start_url, headers=headers, data=payload)
-        json_data = json.loads(response.content)
-        result = html.fromstring(json_data['data']['html'])
+        page.goto(start_url)
+        page.locator("//label[@for='postPerPage5']").first.click()
+        result = html.fromstring(page.content())
+        if result.xpath("//h3[contains(text(), 'Properties coming soon.')]"):
+            print("No Properties Found")
+            browser.close()
+            return
 
         for property in result.xpath("//a[@class='PropertyCard']"):
             try:
                 url = property.xpath('.')[0].attrib['href']
-                # print(url)
                 parse_property(page, url)
             except BaseException as be:
                 _traceback = get_traceback()

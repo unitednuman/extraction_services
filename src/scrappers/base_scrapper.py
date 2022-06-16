@@ -7,7 +7,8 @@ from json import JSONDecodeError
 
 def load_json(content):
     try:
-        json.loads(content)
+        json_data = json.loads(content)
+        return json_data
     except JSONDecodeError as ex:
         raise Exception(f"Unable to load JSON with content = {content}, with exception {ex}")
 

@@ -2,6 +2,7 @@ import requests
 import dateparser
 from price_parser import parse_price
 from scrappers.traceback import get_traceback
+from scrappers.base_scrapper import *
 from extraction_services.models import HouseAuction, ErrorReport
 
 
@@ -34,18 +35,23 @@ class AuctionHouseLondon:
                 try:
                     if not lot_details:
                         pass
-                    parsed_price = parse_price(lot_details['GuidePrice']) if lot_details['GuidePrice'] else None
-                    price = parsed_price.amount_float
-                    currency = self.currency_iso_name(parsed_price.currency)
+                    if not 'Sold Prior' in lot_details['GuidePrice']:
+                        price, currency = prepare_price(lot_details['GuidePrice'])
+                    else:
+                        price = 0.0
+                        currency = ''
                     full_address = lot_details['FullAddress']
                     url_id = "-".join(full_address.replace(',', '').split())
                     lot_id = lot_details['ID']
                     url = f"https://auctionhouselondon.co.uk/page-data/lot/{url_id}-{lot_id}/page-data.json".lower()
                     inner_res = self.connect_to(url)
-                    inner_details = inner_res.json()['result']['pageContext']
+                    try:
+                        inner_details = inner_res.json()['result']['pageContext']
+                    except:
+                        continue
                     auction_date = dateparser.parse(inner_details['AuctionDate'])
                     data_hash = {
-                        #"_id": lot_id,
+                        # "_id": lot_id,
                         "price": price,
                         "currency_type": currency,
                         "picture_link": lot_details['Thumbnail'],
@@ -60,7 +66,7 @@ class AuctionHouseLondon:
                         "auction_venue": None,
                         "source": "auctionhouselondon.co.uk"
                     }
-                    if house_auction := HouseAuction.objects.filter(property_link=res.url):
+                    if house_auction := HouseAuction.objects.filter(property_link=lot_details['Thumbnail']):
                         house_auction.update(**data_hash)
                     else:
                         HouseAuction.objects.create(**data_hash)
@@ -75,7 +81,7 @@ class AuctionHouseLondon:
 
     def scraper(self):
         response = self.connect_to(self.URL)
-        data = response.json()
+        data = load_json(response.content)
         self.parser(data)
 
 
