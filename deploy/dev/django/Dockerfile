@@ -12,7 +12,9 @@ RUN apt-get update \
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements /requirements
 RUN pip install -r /requirements/dev.txt
+# RUN playwright install-deps
 RUN playwright install
+
 
 ADD ./src /app
 

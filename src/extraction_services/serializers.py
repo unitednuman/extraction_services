@@ -33,3 +33,5 @@ class ErrorReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = ErrorReport
         fields = '__all__'
+
+

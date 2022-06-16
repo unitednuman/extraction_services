@@ -3,7 +3,7 @@ import requests
 from lxml import html
 import dateparser
 from price_parser import parse_price
-from extraction_services.models import HouseAuction
+from extraction_services.models import HouseAuction, ErrorReport
 from scrappers.traceback import get_traceback
 
 class AuctionHouse:
