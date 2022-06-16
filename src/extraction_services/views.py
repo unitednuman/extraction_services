@@ -8,7 +8,7 @@ from drf_yasg.utils import swagger_auto_schema
 # from utils.permissions import IsAppAdmin, IsNonAdminUser
 from rest_framework import filters
 from django.db.models import Q
-from .models import HouseAuction , ErrorReport
+from .models import HouseAuction, ErrorReport
 from .serializers import HouseAuctionSerializer, ErrorReportSerializer
 from django.db import connection
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
@@ -24,14 +24,24 @@ class HouseAuctionView(generics.GenericAPIView):
 
     @swagger_auto_schema(manual_parameters=[
 
-        openapi.Parameter('search', openapi.IN_QUERY,
-                          description='Search name',
-                          type=openapi.TYPE_STRING, required=False, default=None),
+        openapi.Parameter('auction_date_start', openapi.IN_QUERY,
+                          description='Start date YYYY-MM-DD',
+                          type=openapi.TYPE_STRING, required=False, default=None, format=openapi.FORMAT_DATE),
+        openapi.Parameter('auction_date_end', openapi.IN_QUERY,
+                          description='End date YYYY-MM-DD',
+                          type=openapi.TYPE_STRING, required=False, default=None, format=openapi.FORMAT_DATE),
     ])
     def get(self, request, *args, **kwargs):
-        # search = request.GET.get('search', '')
+        filters = {}
+        if auction_date_start := request.GET.get('auction_date_start'):
+            filters.update({"auction_datetime__date__gte": auction_date_start})
+        if auction_date_end := request.GET.get('auction_date_end'):
+            filters.update({"auction_datetime__date__lte": auction_date_end})
 
-        data = self.queryset.all()
+        if filters:
+            data = self.queryset.filter(**filters)
+        else:
+            data = self.queryset.all()
         paginated_response = self.paginate_queryset(data)
         serialized = self.get_serializer(paginated_response, many=True)
         return self.get_paginated_response(serialized.data)
@@ -81,8 +91,6 @@ class HouseAuctionViewDetails(generics.GenericAPIView):
 class ErrorView(generics.GenericAPIView):
     queryset = ErrorReport.objects.all()
     serializer_class = ErrorReportSerializer
-
-
 
     def get(self, request, *args, **kwargs):
         data = self.queryset.all()
