@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  api:
+    restart: unless-stopped
+    image: extraction_services_api
+    build:
+      context: ../
+      dockerfile: deploy/Dockerfile.server
+    env_file:
+      - .env
+    ports:
+      - "${EXT_PORT:-80}:8000"
+    command: ../entrypoint.sh
+    volumes:
+      - ../src:/app
+
+  qcluster:
+    image: extraction_services_qcluster
+    network_mode: "host"
+    build:
+      context: ../
+      dockerfile: deploy/Dockerfile.worker
+    env_file:
+      - .env
+    command: python manage.py qcluster
