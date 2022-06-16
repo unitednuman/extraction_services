@@ -11,7 +11,7 @@ RUN apt-get update \
 
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements /requirements
-RUN pip install -r /requirements/dev.txt
+RUN pip install -r /requirements/live.txt
 
 ADD ./src /app
 
@@ -22,4 +22,4 @@ RUN chmod +x /entrypoint.sh
 
 WORKDIR /app
 
-ENV DJANGO_SETTINGS_MODULE 'services.settings.dev'
+ENV DJANGO_SETTINGS_MODULE 'services.settings.live'

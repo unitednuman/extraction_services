@@ -1,5 +1,10 @@
 from .base import *
 
+MIDDLEWARE.extend([
+    'whitenoise.middleware.WhiteNoiseMiddleware'
+])
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 LOGFILE_ROOT = BASE_DIR.parent / "logs"
 DATABASES = {

@@ -1,9 +1,5 @@
 version: "3.8"
 
-volumes:
-    static:
-    media:
-
 services:
   api:
     restart: unless-stopped
@@ -14,7 +10,7 @@ services:
     env_file:
       - .env
     ports:
-      - "80:8000"
+      - "${EXT_PORT:-80}:8000"
     command: ../entrypoint.sh
     volumes:
       - ../src:/app
