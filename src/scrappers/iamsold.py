@@ -22,7 +22,6 @@ def parse_properties(html_content):
             detailed_page_url = get_attrib(property, ".//a", 0, 'href')
             if detailed_page_url:
                 propertyLink = "https://www.iamsold.co.uk" + detailed_page_url
-                print(propertyLink)
                 response = requests.get(propertyLink)
                 result = html.fromstring(response.content)
                 end_time = get_attrib(result, "//span[@class='end_time_auto']", 0, "data-time-end")

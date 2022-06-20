@@ -5,6 +5,8 @@ from django.utils.timezone import now
 import django
 import datetime
 import pytz
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 
 # Create your models here.
@@ -13,7 +15,7 @@ class HouseAuction(TimeStampedModel):
     currency_type = models.CharField(max_length=10, null=True, blank=True)
     picture_link = models.TextField(null=True, blank=True)
     property_description = models.TextField(null=True, blank=True)
-    property_link = models.TextField(null=True, blank=True , unique=True)
+    property_link = models.TextField(null=True, blank=True, unique=True)
     address = models.TextField(null=True, blank=True)
     postal_code = models.TextField(null=True, blank=True)
     number_of_bedrooms = models.TextField(null=True, blank=True)
@@ -22,6 +24,39 @@ class HouseAuction(TimeStampedModel):
     auction_datetime = models.DateTimeField(null=True, blank=True)
     auction_venue = models.TextField(null=True, blank=True)
     source = models.TextField(null=True, blank=True)
+
+
+@receiver(pre_save, sender=HouseAuction)
+def pre_save_validator(sender, instance, **kwargs):
+    if instance.property_description:
+        instance.property_description = instance.property_description.strip()
+    if instance.price:
+        instance.price = instance.price.strip()
+    if instance.currency_type:
+        instance.currency_type = instance.currency_type.strip()
+    if instance.picture_link:
+        instance.picture_link = instance.picture_link.strip()
+    if instance.property_link:
+        instance.property_link = instance.property_link.strip()
+    if instance.address:
+        instance.address = instance.address.strip()
+    if instance.postal_code:
+        instance.postal_code = instance.postal_code.strip()
+    if instance.number_of_bedrooms:
+        instance.number_of_bedrooms = instance.number_of_bedrooms.strip()
+    if instance.property_type:
+        instance.property_type = instance.property_type.strip()
+    if instance.tenure:
+        instance.tenure = instance.tenure.strip()
+    if instance.auction_venue:
+        instance.auction_venue = instance.auction_venue.strip()
+    if instance.source:
+        instance.source = instance.source.strip()
+
+
+
+
+# pre_save.connect(pre_save_validator,sender=HouseAuction)
 
 
 class ErrorReport(TimeStampedModel):

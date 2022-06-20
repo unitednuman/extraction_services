@@ -89,7 +89,7 @@ def parse_properties(results):
             "auction_datetime": auction_date,  # TODO : combine date and hour
             # "auction_hour": auc_hours,  combine it with auction_date_time
             "tenure": tenure,
-            "source": base_url
+            "source": "sdlauctions.co.uk"
         }
         if house_auction := HouseAuction.objects.filter(property_link=propertyLink):
             house_auction.update(**data_hash)

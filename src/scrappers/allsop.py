@@ -62,9 +62,8 @@ class AllSop:
                     "tenure": details['version']['allsop_propertytenure'],
                     "auction_datetime": auction_date,
                     "auction_venue": details['version']['allsop_auction']['allsop_venue'],
-                    "source": "auctionhouse.co.uk"
+                    "source": "auctions.allsop.co.uk"
                 }
-
                 if house_auction := HouseAuction.objects.filter(property_link=res.url):
                     house_auction.update(**data_hash)
                 else:

@@ -31,7 +31,6 @@ def parse_property(property_url, auction_datetime, auction_venue, imagelink):
         house_auction.update(**data_hash)
     else:
         HouseAuction.objects.create(**data_hash)
-    print(auction_venue, auction_datetime)
 
 
 def parse_auction(auction_url, auction_venue):

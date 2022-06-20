@@ -8,7 +8,7 @@ from extraction_services.models import HouseAuction, ErrorReport
 def parse_property(url, auction_datetime, imagelink):
     response = requests.get(url)
     result = html.fromstring(response.content)
-    print(response.url)
+    # print(response.url)
     price = None
     currency_symbol = None
     try:

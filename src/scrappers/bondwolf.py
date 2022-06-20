@@ -43,7 +43,6 @@ def parse_property(page, url):
         "auction_venue": venue,
         "source": "bondwolfe.com"
     }
-    print(data_hash)
     if house_auction := HouseAuction.objects.filter(property_link=url):
         house_auction.update(**data_hash)
     else:
