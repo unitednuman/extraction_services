@@ -30,8 +30,6 @@ class HouseAuction(TimeStampedModel):
 def pre_save_validator(sender, instance, **kwargs):
     if instance.property_description:
         instance.property_description = instance.property_description.strip()
-    if instance.price:
-        instance.price = instance.price.strip()
     if instance.currency_type:
         instance.currency_type = instance.currency_type.strip()
     if instance.picture_link:
@@ -42,8 +40,6 @@ def pre_save_validator(sender, instance, **kwargs):
         instance.address = instance.address.strip()
     if instance.postal_code:
         instance.postal_code = instance.postal_code.strip()
-    if instance.number_of_bedrooms:
-        instance.number_of_bedrooms = instance.number_of_bedrooms.strip()
     if instance.property_type:
         instance.property_type = instance.property_type.strip()
     if instance.tenure:
