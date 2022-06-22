@@ -21,6 +21,16 @@ def get_text(node, index, xpath):
         return ''
 
 
+def get_tenure(tenure_str):
+    tenure_str = tenure_str.lower()
+    if 'freehold' in tenure_str:
+        return "Freehold"
+    elif 'leasehold' in tenure_str:
+        return 'Leasehold'
+    else:
+        return ""
+
+
 def get_attrib(node, xpath, index, attribute):
     try:
         return node.xpath(xpath)[index].attrib[attribute]

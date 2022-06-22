@@ -41,8 +41,12 @@ class AllSop:
                 url = f"https://auctions.allsop.co.uk/api/lot/reference/{reference_no}?react"
                 res = self.connect_to(url)
                 details = res.json()
-                price_obj = parse_price(details['version']['lot']['guide_price_text'].replace('M','000000'))
-                price = price_obj.amount_float
+                if 'M' in details['version']['lot']['guide_price_text']:
+                    price_obj = parse_price(details['version']['lot']['guide_price_text'])
+                    price = price_obj.amount_float * 1000000
+                else:
+                    price_obj = parse_price(details['version']['lot']['guide_price_text'])
+                    price = price_obj.amount_float
                 currency = self.currency_iso_name(price_obj.currency)
                 auction_date = dateparser.parse(details['version']['allsop_auction']['allsop_auctiondate'])
                 features = "\n".join([value['value'] for value in details["version"]['features']])
