@@ -15,18 +15,16 @@ def parse_property(page, url):
     time.sleep(5)
     response = page.content()
     result = html.fromstring(response)
-    status = result.xpath("//div[@class='PropertyHeader-price-result']")[0].text_content().strip()
     auction_time = parse_auction_date(
         result.xpath("//div[@class='AuctionDetails-datetime']//h2")[0].text_content().strip())
     description = result.xpath("//h4[contains(text(), 'Property Description')]//parent::div")[0].text_content().strip()
 
-    tenure = get_text(result, 0, "//h4[contains(text(), 'Tenure')]//parent::div")
-
+    tenure_str = get_text(result, 0, "//h4[contains(text(), 'Tenure')]//parent::div")
+    tenure = get_tenure(tenure_str)
     price_text = result.xpath("//h2[@class='h1 mb-1 PropertyHeader-price-value']")[0].text_content().strip()
     price, currency = prepare_price(price_text)
     address = result.xpath("//div[@class='PropertyHeader-description pr-lg-5']//h1")[0].text_content().strip()
-    postal_code = address.split(',')[-1]
-    domain = "https://www.bondwolfe.com/"
+    postal_code = address.split(',')[-1].strip()
     imagelink = result.xpath("//div[@class='slick-list draggable']//img")[0].attrib['src']
     propertyLink = page.url
     venue = get_text(result, 0, "//div[@class='AuctionDetails-location']//p")
@@ -36,7 +34,7 @@ def parse_property(page, url):
         "currency_type": currency,
         "picture_link": imagelink,
         "property_description": description,
-        "property_link": url,
+        "property_link": propertyLink,
         "address": address,
         "postal_code": postal_code,
         "auction_datetime": auction_time,

@@ -25,7 +25,12 @@ def parse_properties(html_content):
                 response = requests.get(propertyLink)
                 result = html.fromstring(response.content)
                 end_time = get_attrib(result, "//span[@class='end_time_auto']", 0, "data-time-end")
-                auction_datetime = parse_auction_date(end_time)
+                if not end_time:
+                    end_time = get_text(result, -1, "//span[@class='stat-value stat-value--large']")
+                try:
+                    auction_datetime = parse_auction_date(end_time)
+                except:
+                    auction_datetime = None
                 propertyDescription = result.xpath("//div[@class='inner-properties-content']")[0].text_content()
             else:
                 continue
@@ -36,6 +41,7 @@ def parse_properties(html_content):
                 "property_description": propertyDescription,
                 "property_link": response.url,
                 "address": address,
+                "postal_code": postalcode.strip(),
                 "number_of_bedrooms": numberOfBedrooms,
                 "auction_datetime": auction_datetime,
                 "auction_venue": venue,

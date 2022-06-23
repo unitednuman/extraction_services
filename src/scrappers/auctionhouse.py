@@ -6,6 +6,7 @@ from price_parser import parse_price
 from extraction_services.models import HouseAuction, ErrorReport
 from scrappers.traceback import get_traceback
 
+
 class AuctionHouse:
     DOMAIN = 'https://www.auctionhouse.co.uk'
     URL = 'https://www.auctionhouse.co.uk/auction/search-results?searchType=0'
@@ -46,36 +47,65 @@ class AuctionHouse:
                     continue
                 if "online.auctionhouse.co.uk" in lot_detail.xpath(".//a//@href")[0]:
                     continue
-                lot_link = self.DOMAIN + lot_detail.xpath(".//a//@href")[0]
+                lot_link = lot_detail.xpath(".//a//@href")[0]
+                if not lot_link.startswith("https"):
+                    lot_link = self.DOMAIN + lot_link
                 res = self.connect_to(lot_link)
                 parsed_content = html.fromstring(res.content)
-                price = parse_price(parsed_content.xpath("//h4[@class='guideprice']//text()")[0]).amount_float
-                currency = self.currency_iso_name(parse_price(parsed_content.xpath("//h4[@class='guideprice']//text()")[0]).currency)
+                print(parsed_content.xpath("//h4[@class='guideprice']//text() | //b[contains(text(),'Guide')]//text()"))
+                price_str = \
+                    parsed_content.xpath("//h4[@class='guideprice']//text() | //b[contains(text(),'Guide')]//text()")[0]
+                price, currency = prepare_price(price_str)
+                print(price, currency)
+                # price = parse_price(parsed_content.xpath("//h4[@class='guideprice']//text() | //b[contains(text(),'Guide')]//text()")[0]).amount_float
+                # currency = self.currency_iso_name(
+                #     parse_price(parsed_content.xpath("//h4[@class='guideprice']//text()")[0]).currency)
                 full_address = parsed_content.xpath("//div[@id='lotnav']//p//text()")[0]
                 url = res.url
                 lot_id = url.split("/")[-1]
-                thumbnail = self.DOMAIN + parsed_content.xpath("//div[@class='item img-thumbnail-wrapper active']//img//@src")[0]
-                bedrooms_data = [text for text in parsed_content.xpath("//div[@class='lot-info-right']//li//text()") if "Bedroom" in text]
+                thumbnail = self.DOMAIN + \
+                            parsed_content.xpath(
+                                "//div[@class='item img-thumbnail-wrapper active']//img//@src | //div[@id='carousel-lot-images']//img/@data-src")[
+                                0]
+                bedrooms_data = [text for text in parsed_content.xpath("//div[@class='lot-info-right']//li//text()") if
+                                 "Bedroom" in text]
                 bedrooms = bedrooms_data[0].split()[0] if bedrooms_data else None
-                tenure_data = [text for text in parsed_content.xpath("//div[@class='lot-info-right']//li") if "Tenure" in text.text_content()]
+                tenure_data = [text for text in parsed_content.xpath("//div[@class='lot-info-right']//li") if
+                               "Tenure" in text.text_content()]
                 tenure = tenure_data[0].text_content().split(":")[-1].strip() if tenure_data else None
-                venue_data = [text for text in parsed_content.xpath("//p[@class='auction-info-header']") if "Venue" in text.text_content()]
-                venue = venue_data[0].getnext().text_content().replace(',','').strip() if venue_data else None
-                auction_date = dateparser.parse(parsed_content.xpath("//div[@class='auction-date']//p")[-1].text_content() + " "+ parsed_content.xpath("//div[@class='auction-time']//p")[-1].text_content())
+                if tenure:
+                    tenure = get_tenure(tenure)
+                venue_data = [text for text in parsed_content.xpath("//p[@class='auction-info-header']") if
+                              "Venue" in text.text_content()]
+                venue = venue_data[0].getnext().text_content().replace(',', '').strip() if venue_data else None
+                auction_datetime = None
+                try:
+                    auction_datetime = parse_auction_date(
+                        parsed_content.xpath("//time[@class='end-date-time']")[0].text)
+                except:
+                    pass
+                if not auction_datetime:
+                    auction_datetime = parse_auction_date(
+                        parsed_content.xpath("//div[@class='auction-date']//p")[-1].text_content() + " " +
+                        parsed_content.xpath("//div[@class='auction-time']//p")[-1].text_content())
+                property_description = \
+                    parsed_content.xpath("//div[@class='preline'] | //div[@class='col-md-14 col-sm-13']")[
+                        0].text_content().strip()
                 data_hash = {}
+                print(res.url)
                 data_hash = {
-                    #"_id": lot_id,
+                    # "_id": lot_id,
                     "price": price,
                     "currency_type": currency,
                     "picture_link": thumbnail,
-                    "property_description": parsed_content.xpath("//div[@class='preline']")[0].text_content().strip(),
+                    "property_description": property_description,
                     "property_link": url,
                     "address": full_address,
                     "postal_code": full_address.split(",")[-1].strip(),
                     "number_of_bedrooms": bedrooms,
                     "property_type": None,
                     "tenure": tenure,
-                    "auction_datetime": auction_date,
+                    "auction_datetime": auction_datetime,
                     "auction_venue": venue,
                     "source": "auctionhouse.co.uk"
                 }
@@ -90,10 +120,13 @@ class AuctionHouse:
                     error_report.save()
                 else:
                     ErrorReport.objects.create(file_name="auctionhouse.py", error=str(be), trace_back=_traceback)
+
     def scraper(self):
+
         response = self.connect_to(self.URL)
         parsed_response = html.fromstring(response.content)
         self.parser(parsed_response)
+
 
 def run():
     AuctionHouse().scraper()
