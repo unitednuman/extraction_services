@@ -22,6 +22,8 @@ def get_text(node, index, xpath):
 
 
 def get_tenure(tenure_str):
+    if tenure_str is None:
+        return ""
     tenure_str = tenure_str.lower()
     if 'freehold' in tenure_str:
         return "Freehold"
