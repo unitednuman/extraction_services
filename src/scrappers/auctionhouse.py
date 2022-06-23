@@ -1,8 +1,7 @@
 from wsgiref import headers
 import requests
 from lxml import html
-import dateparser
-from price_parser import parse_price
+from scrappers.base_scrapper import *
 from extraction_services.models import HouseAuction, ErrorReport
 from scrappers.traceback import get_traceback
 
@@ -52,11 +51,9 @@ class AuctionHouse:
                     lot_link = self.DOMAIN + lot_link
                 res = self.connect_to(lot_link)
                 parsed_content = html.fromstring(res.content)
-                print(parsed_content.xpath("//h4[@class='guideprice']//text() | //b[contains(text(),'Guide')]//text()"))
                 price_str = \
                     parsed_content.xpath("//h4[@class='guideprice']//text() | //b[contains(text(),'Guide')]//text()")[0]
                 price, currency = prepare_price(price_str)
-                print(price, currency)
                 # price = parse_price(parsed_content.xpath("//h4[@class='guideprice']//text() | //b[contains(text(),'Guide')]//text()")[0]).amount_float
                 # currency = self.currency_iso_name(
                 #     parse_price(parsed_content.xpath("//h4[@class='guideprice']//text()")[0]).currency)
@@ -92,7 +89,6 @@ class AuctionHouse:
                     parsed_content.xpath("//div[@class='preline'] | //div[@class='col-md-14 col-sm-13']")[
                         0].text_content().strip()
                 data_hash = {}
-                print(res.url)
                 data_hash = {
                     # "_id": lot_id,
                     "price": price,

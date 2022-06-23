@@ -8,7 +8,6 @@ from extraction_services.models import HouseAuction, ErrorReport
 def parse_property(url, auction_datetime, imagelink):
     response = requests.get(url)
     result = html.fromstring(response.content)
-    # print(response.url)
     price = None
     currency_symbol = None
     try:
@@ -16,13 +15,13 @@ def parse_property(url, auction_datetime, imagelink):
             "//p[contains(text(), '£')] | //p[contains(text(), 'price')]")[
                                                    0].text.replace("Invited Opening Bid", ""))
     except Exception as e:
-        print("Price not found", e)
+        pass
     address = result.xpath("//h2[contains(@class,'m-0 order-1 order-lg-0')]")[0].text
     postal_code = address.split(",")[-1]
     description = result.xpath("//div[@id='property-page']")[0].text_content().strip().replace("\n", " ")
     propertyType = result.xpath("//div[contains(@class, 'property-type')]")[0].text.strip()
     tenure_str = get_text(result, 0,
-                      "//h3[contains(text(),'Tenure')]//parent::div//following-sibling::div//p | //h3[contains(text(),'Tenancy')]//parent::div//following-sibling::div//p")
+                          "//h3[contains(text(),'Tenure')]//parent::div//following-sibling::div//p | //h3[contains(text(),'Tenancy')]//parent::div//following-sibling::div//p")
     tenure = get_tenure(tenure_str)
     data_hash = {
         "price": price,
