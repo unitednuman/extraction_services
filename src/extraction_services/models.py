@@ -18,7 +18,7 @@ class HouseAuction(TimeStampedModel):
     property_link = models.TextField(null=True, blank=True, unique=True)
     address = models.TextField(null=True, blank=True)
     postal_code = models.TextField(null=True, blank=True)
-    number_of_bedrooms = models.TextField(null=True, blank=True)
+    number_of_bedrooms = models.IntegerField(null=True, blank=True)
     property_type = models.TextField(null=True, blank=True)
     tenure = models.TextField(null=True, blank=True)
     auction_datetime = models.DateTimeField(null=True, blank=True)
