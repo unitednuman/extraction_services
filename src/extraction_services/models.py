@@ -1,3 +1,5 @@
+import re
+
 from django.db import models
 from model_utils.models import TimeStampedModel
 from datetime import timedelta
@@ -48,8 +50,11 @@ def pre_save_validator(sender, instance, **kwargs):
         instance.auction_venue = instance.auction_venue.strip()
     if instance.source:
         instance.source = instance.source.strip()
-
-
+    if isinstance(instance.number_of_bedrooms, str):
+        if match := re.search(r"(\d+) Bedrooms?", instance.number_of_bedrooms):
+            instance.number_of_bedrooms = int(match.group(1))
+        else:
+            instance.number_of_bedrooms = None
 
 
 # pre_save.connect(pre_save_validator,sender=HouseAuction)
