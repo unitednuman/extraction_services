@@ -1,6 +1,4 @@
 import requests
-import dateparser
-from price_parser import parse_price
 from scrappers.traceback import get_traceback
 from scrappers.base_scrapper import *
 from extraction_services.models import HouseAuction, ErrorReport
@@ -13,7 +11,7 @@ class AuctionHouseLondon:
     def __init__(self):
         pass
 
-    def connect_to(self, url, headers={}, payload={}):
+    def connect_to(self, url, headers=None, payload=None):
         # print(url)
         res = requests.get(url, headers=headers, data=payload)
         # print(f"------ Request Response : {res.status_code} --------")

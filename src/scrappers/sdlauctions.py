@@ -1,5 +1,9 @@
+import re
+
 from lxml import html
 import requests
+
+from scrappers.base_scrapper import parse_postal_code
 from scrappers.traceback import get_traceback
 import dateparser
 from extraction_services.models import HouseAuction, ErrorReport
@@ -61,10 +65,7 @@ def parse_properties(results):
         propertyLink = base_url + get_attrib(property, "a", 0, "href")
         numberOfBedrooms = get_text(property, 0, ".//i[@class='fa fa-bed']//following-sibling::span")
         address = get_text(property, 0, ".//li[@class='auction-card--contend-address']")
-        if address:
-            postcode = address.split(',')[-1]
-        else:
-            postcode = 0
+        postcode = parse_postal_code(address)
         price = get_text(property, 0, ".//li[@class='auction-card--guide-price']//following-sibling::li")
         guidePrice = prepare_price(price)[0]
         currency = prepare_price(price)[1]

@@ -1,7 +1,5 @@
 import time
-import requests
 from lxml import html
-import json
 from scrappers.base_scrapper import *
 from scrappers.traceback import get_traceback
 from extraction_services.models import HouseAuction, ErrorReport
@@ -24,7 +22,7 @@ def parse_property(page, url):
     price_text = result.xpath("//h2[@class='h1 mb-1 PropertyHeader-price-value']")[0].text_content().strip()
     price, currency = prepare_price(price_text)
     address = result.xpath("//div[@class='PropertyHeader-description pr-lg-5']//h1")[0].text_content().strip()
-    postal_code = address.split(',')[-1].strip()
+    postal_code = parse_postal_code(address)
     imagelink = result.xpath("//div[@class='slick-list draggable']//img")[0].attrib['src']
     propertyLink = page.url
     venue = get_text(result, 0, "//div[@class='AuctionDetails-location']//p")

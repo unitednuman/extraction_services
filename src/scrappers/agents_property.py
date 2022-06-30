@@ -10,7 +10,7 @@ def parse_property(url, venue, auction_datetime):
     result = html.fromstring(response.content)
     address = result.xpath("//div[@class='single-property-galleries row u-bg-white col-wrapper flex-wrapper']//p")[
         0].text
-    postal_code = address.split(',')[-1]
+    postal_code = parse_postal_code(address)
     price, currency_symbol = prepare_price(result.xpath("//p[@class='single-property-price']")[0].text)
     imagelink = result.xpath("//div[@class='gallery-img']//img")[0].attrib['src']
     no_of_beds = result.xpath("//h1[@class='single-property-title']")[0].text.split('Bedroom')[0] or \

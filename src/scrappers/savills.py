@@ -1,7 +1,6 @@
 import requests
-import json
 from scrappers.traceback import get_traceback
-from scrappers.base_scrapper import load_json
+from scrappers.base_scrapper import load_json, parse_postal_code
 from extraction_services.models import HouseAuction, ErrorReport
 
 catalogue_url = "https://auctions.savills.co.uk/index.php?option=com_calendar&format=json&task=upcoming.getAuctions"
@@ -21,7 +20,7 @@ def parse_property(auction_id, lot_id, auction_date, venue):
     price = json_data['lot']['low_estimate']
     tenure = json_data['lot']['tenure']
     address = json_data['lot']['name']
-    postal_code = address.split(',')[-1]
+    postal_code = parse_postal_code(address)
     auction_datetime = auction_date
     currency = 'GBP'
     propertyLink = url + json_data['lot']['link']

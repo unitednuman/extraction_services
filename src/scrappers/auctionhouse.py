@@ -1,4 +1,3 @@
-from wsgiref import headers
 import requests
 from lxml import html
 from scrappers.base_scrapper import *
@@ -88,7 +87,7 @@ class AuctionHouse:
                 property_description = \
                     parsed_content.xpath("//div[@class='preline'] | //div[@class='col-md-14 col-sm-13']")[
                         0].text_content().strip()
-                data_hash = {}
+                postcode = parse_postal_code(full_address)
                 data_hash = {
                     # "_id": lot_id,
                     "price": price,
@@ -97,7 +96,7 @@ class AuctionHouse:
                     "property_description": property_description,
                     "property_link": url,
                     "address": full_address,
-                    "postal_code": full_address.split(",")[-1].strip(),
+                    "postal_code": postcode,
                     "number_of_bedrooms": bedrooms,
                     "property_type": None,
                     "tenure": tenure,

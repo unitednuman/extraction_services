@@ -1,8 +1,10 @@
+import re
 import dateparser
 from price_parser import Price
 import logging
 import json
 from json import JSONDecodeError
+from scrappers.traceback import save_error_report
 
 
 def load_json(content):
@@ -65,3 +67,12 @@ def parse_auction_date(auction_date_str):
     if auction_date is not None:
         return auction_date
     raise Exception(f"Unable to parse date from \"{auction_date}\" string")
+
+
+def parse_postal_code(address):
+    try:
+        return re.search(r"(\w+\s\w+)\s*$", address).group(1)
+    except BaseException as be:
+        be.args = be.args + (address,)
+        save_error_report(be)
+        return None

@@ -1,8 +1,7 @@
 import requests
 from lxml import html
 from scrappers.base_scrapper import *
-from scrappers.traceback import get_traceback
-from extraction_services.models import HouseAuction, ErrorReport
+from extraction_services.models import HouseAuction
 
 
 def parse_property(url, auction_datetime, imagelink):
@@ -17,7 +16,7 @@ def parse_property(url, auction_datetime, imagelink):
     except Exception as e:
         pass
     address = result.xpath("//h2[contains(@class,'m-0 order-1 order-lg-0')]")[0].text
-    postal_code = address.split(",")[-1]
+    postal_code = parse_postal_code(address)
     description = result.xpath("//div[@id='property-page']")[0].text_content().strip().replace("\n", " ")
     propertyType = result.xpath("//div[contains(@class, 'property-type')]")[0].text.strip()
     tenure_str = get_text(result, 0,

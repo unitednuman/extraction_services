@@ -12,7 +12,7 @@ def parse_property(property_url, auction_datetime, auction_venue, imagelink):
     guide_price = prepare_price(result.xpath("//div[@class='price']")[0].text_content())[0]
     currency_symbol = prepare_price(result.xpath("//div[@class='price']")[0].text_content())[1]
     address = result.xpath("//div[@class='col col-xs-12 col-sm-12 col-md-7 col-lg-7 col-xl-7']/h1")[0].text_content()
-    postal_code = address.split(',')[-1]
+    postal_code = parse_postal_code(address)
     description = result.xpath("//div[@data-tab-content='tab_key_features']")[0].text_content()
     data_hash = {
         "price": guide_price,
