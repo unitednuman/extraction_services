@@ -53,8 +53,8 @@ def pre_save_validator(sender, instance, **kwargs):
     if isinstance(instance.number_of_bedrooms, str):
         if match := re.search(r"(\d+) Bedrooms?", instance.number_of_bedrooms):
             instance.number_of_bedrooms = int(match.group(1))
-        else:
-            instance.number_of_bedrooms = None
+    else:
+        instance.number_of_bedrooms = None
 
 
 # pre_save.connect(pre_save_validator,sender=HouseAuction)

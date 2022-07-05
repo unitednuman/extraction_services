@@ -16,6 +16,7 @@ services:
       - ../src:/app
 
   qcluster:
+    restart: unless-stopped
     image: extraction_services_qcluster
     network_mode: "host"
     build:
@@ -24,3 +25,5 @@ services:
     env_file:
       - .env
     command: python manage.py qcluster
+    volumes:
+      - ../src:/app
