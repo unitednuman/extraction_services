@@ -35,7 +35,7 @@ def parse_property(auction_id, lot_id, auction_date, venue):
         "tenure": tenure,
         "auction_datetime": auction_datetime,
         "auction_venue": venue,
-        "source": "autions.savills.co.uk"
+        "source": "auctions.savills.co.uk"
     }
     if house_auction := HouseAuction.objects.filter(property_link=propertyLink):
         house_auction.update(**data_hash)
