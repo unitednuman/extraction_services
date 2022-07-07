@@ -1,6 +1,7 @@
 import re
 
 from django.db import models
+from django.utils.html import strip_tags
 from model_utils.models import TimeStampedModel
 from datetime import timedelta
 from django.utils.timezone import now
@@ -31,7 +32,7 @@ class HouseAuction(TimeStampedModel):
 @receiver(pre_save, sender=HouseAuction)
 def pre_save_validator(sender, instance, **kwargs):
     if instance.property_description:
-        instance.property_description = instance.property_description.strip()
+        instance.property_description = strip_tags(instance.property_description).strip()
     if instance.currency_type:
         instance.currency_type = instance.currency_type.strip()
     if instance.picture_link:
@@ -45,7 +46,7 @@ def pre_save_validator(sender, instance, **kwargs):
     if instance.property_type:
         instance.property_type = instance.property_type.strip()
     if instance.tenure:
-        instance.tenure = instance.tenure.strip()
+        instance.tenure = strip_tags(instance.tenure).strip()
     if instance.auction_venue:
         instance.auction_venue = instance.auction_venue.strip()
     if instance.source:

@@ -1,4 +1,6 @@
 import json
+import re
+
 from lxml import html
 import requests
 from scrappers.base_scrapper import *
@@ -14,7 +16,12 @@ def parse_properties(html_content):
 
             price_str = get_text(property, 1, ".//div[@class='properties-preview-content-price']//span")
             price, currency_symbol = prepare_price(price_str)
-            address = get_text(property, 0, ".//span[@class='properties-preview-content-details-address']")
+            address = get_text(property, 0, ".//div[@class='properties-preview-content-details']")
+            tenure = get_text(property, 0, "(.//span[@id='properties-inner-message'])[last()]")
+            if match := re.search(r'(leasehold|freehold)', tenure, flags=re.I):
+                tenure = match.group(1).title()
+            else:
+                tenure = None
             postalcode = get_text(property, 0,
                                   ".//span[@class='properties-preview-content-details-address details-address-postcode']")
 
@@ -45,7 +52,8 @@ def parse_properties(html_content):
                 "number_of_bedrooms": numberOfBedrooms,
                 "auction_datetime": auction_datetime,
                 "auction_venue": venue,
-                "source": "iamsold.co.uk"
+                "source": "iamsold.co.uk",
+                "tenure": tenure
             }
             if house_auction := HouseAuction.objects.filter(property_link=response.url):
                 house_auction.update(**data_hash)

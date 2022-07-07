@@ -17,7 +17,7 @@ def load_json(content):
 
 def get_text(node, index, xpath):
     try:
-        return node.xpath(xpath)[index].text
+        return node.xpath(xpath)[index].text_content()
     except Exception as e:
         logging.debug(f"could not find text with Xpath = {xpath}, with exception {e}")
         return ''
