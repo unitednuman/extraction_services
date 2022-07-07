@@ -1,4 +1,6 @@
 import requests
+from django.utils.text import slugify
+
 from scrappers.traceback import get_traceback
 from extraction_services.models import HouseAuction, ErrorReport
 import dateparser
@@ -54,10 +56,11 @@ class AllSop:
                 image_id = details["version"]['images'][0]['file_id']
                 image_url = f"https://ams-auctions-production-storage.s3.eu-west-2.amazonaws.com/image_cache/{image_id}---auto--.jpg"
                 url_suffix = details["version"]['allsop_propertybyline']
-                char_to_replace = {'!': '','@': '','#': '','$':'','%':'','&':'','*':'','"':''}
-                url_suffix = re.sub(r"[!@#$%&*]",lambda x: char_to_replace[x.group(0)],url_suffix)
-                url_suffix = "-".join(url_suffix.strip().split()).strip().lower()
-                property_url = f"https://auctions.allsop.co.uk/lot-overview/{url_suffix}/{reference_no}"
+                # char_to_replace = {'!': '','@': '','#': '','$':'','%':'','&':'','*':'','"':''}
+                # url_suffix = re.sub(r"[!@#$%&*]",lambda x: char_to_replace[x.group(0)],url_suffix)
+                # url_suffix = "-".join(url_suffix.strip().split()).strip().lower()
+                slug = slugify(url_suffix)
+                property_url = f"https://auctions.allsop.co.uk/lot-overview/{slug}/{reference_no}"
                 data_hash = {
                     #"_id": details["version"]["allsop_auctionid"],
                     "price": price,
