@@ -1,7 +1,10 @@
 import requests
+from django.utils.text import slugify
+
 from scrappers.traceback import get_traceback
 from extraction_services.models import HouseAuction, ErrorReport
 import dateparser
+import re
 from price_parser import parse_price
 
 class AllSop:
@@ -52,13 +55,19 @@ class AllSop:
                 features = "\n".join([value['value'] for value in details["version"]['features']])
                 image_id = details["version"]['images'][0]['file_id']
                 image_url = f"https://ams-auctions-production-storage.s3.eu-west-2.amazonaws.com/image_cache/{image_id}---auto--.jpg"
+                url_suffix = details["version"]['allsop_propertybyline']
+                # char_to_replace = {'!': '','@': '','#': '','$':'','%':'','&':'','*':'','"':''}
+                # url_suffix = re.sub(r"[!@#$%&*]",lambda x: char_to_replace[x.group(0)],url_suffix)
+                # url_suffix = "-".join(url_suffix.strip().split()).strip().lower()
+                slug = slugify(url_suffix)
+                property_url = f"https://auctions.allsop.co.uk/lot-overview/{slug}/{reference_no}"
                 data_hash = {
                     #"_id": details["version"]["allsop_auctionid"],
                     "price": price,
                     "currency_type":currency,
                     "picture_link": image_url,
                     "property_description": features,
-                    "property_link": res.url,
+                    "property_link": property_url,
                     "address": details["version"]['allsop_property']['allsop_name'],
                     "postal_code": details["version"]['allsop_property']['allsop_postcode'],
                     "number_of_bedrooms": details["version"]['allsop_property']['allsop_bedrooms'],
