@@ -12,7 +12,7 @@ def parse_property(property_url, auction_datetime, auction_venue, imagelink):
     guide_price = prepare_price(result.xpath("//div[@class='price']")[0].text_content())[0]
     currency_symbol = prepare_price(result.xpath("//div[@class='price']")[0].text_content())[1]
     address = result.xpath("//div[@class='col col-xs-12 col-sm-12 col-md-7 col-lg-7 col-xl-7']/h1")[0].text_content()
-    postal_code = parse_postal_code(address)
+    postal_code = parse_postal_code(address, __file__)
     description = result.xpath("//div[@data-tab-content='tab_key_features']")[0].text_content()
     data_hash = {
         "price": guide_price,
@@ -27,10 +27,7 @@ def parse_property(property_url, auction_datetime, auction_venue, imagelink):
         "auction_venue": auction_venue,
         "source": "taylorjamesauctions.co.uk"
     }
-    if house_auction := HouseAuction.objects.filter(property_link=property_url):
-        house_auction.update(**data_hash)
-    else:
-        HouseAuction.objects.create(**data_hash)
+    HouseAuction.sv_upd_result(data_hash)
 
 
 def parse_auction(auction_url, auction_venue):
@@ -45,12 +42,7 @@ def parse_auction(auction_url, auction_venue):
             imagelink = property.xpath(".//img[contains(@alt,'property')]")[0].attrib['src']
             parse_property(property_url, auction_datetime, auction_venue, imagelink)
         except BaseException as be:
-            _traceback = get_traceback()
-            if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
-                error_report.count = error_report.count + 1
-                error_report.save()
-            else:
-                ErrorReport.objects.create(file_name="taylorjames.py", error=str(be), trace_back=_traceback)
+            save_error_report(be, __file__)
 
 
 def run():

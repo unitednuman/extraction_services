@@ -10,11 +10,12 @@ def get_traceback():
     return sio.getvalue()
 
 
-def save_error_report(exception):
+def save_error_report(exception, filename, **kwargs):
     _traceback = get_traceback()
     exception = str(exception)
     if error_report := ErrorReport.objects.filter(trace_back=_traceback, error=exception).first():
         error_report.count = error_report.count + 1
+        error_report.__dict__.update(kwargs)
         error_report.save()
     else:
-        ErrorReport.objects.create(file_name="auctionhouse.py", error=exception, trace_back=_traceback)
+        ErrorReport.objects.create(file_name=filename, error=exception, trace_back=_traceback, **kwargs)

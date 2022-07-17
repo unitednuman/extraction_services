@@ -87,7 +87,7 @@ class AuctionHouse:
                 property_description = \
                     parsed_content.xpath("//div[@class='preline'] | //div[@class='col-md-14 col-sm-13']")[
                         0].text_content().strip()
-                postcode = parse_postal_code(full_address)
+                postcode = parse_postal_code(full_address, __file__)
                 data_hash = {
                     # "_id": lot_id,
                     "price": price,
@@ -104,17 +104,15 @@ class AuctionHouse:
                     "auction_venue": venue,
                     "source": "auctionhouse.co.uk"
                 }
-                if house_auction := HouseAuction.objects.filter(property_link=res.url):
-                    house_auction.update(**data_hash)
-                else:
-                    HouseAuction.objects.create(**data_hash)
+                HouseAuction.sv_upd_result(data_hash)
             except BaseException as be:
-                _traceback = get_traceback()
-                if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
-                    error_report.count = error_report.count + 1
-                    error_report.save()
-                else:
-                    ErrorReport.objects.create(file_name="auctionhouse.py", error=str(be), trace_back=_traceback)
+                save_error_report(be, __file__)
+                # _traceback = get_traceback()
+                # if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
+                #     error_report.count = error_report.count + 1
+                #     error_report.save()
+                # else:
+                #     ErrorReport.objects.create(file_name="auctionhouse.py", error=str(be), trace_back=_traceback)
 
     def scraper(self):
 

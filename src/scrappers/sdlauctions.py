@@ -4,7 +4,7 @@ from lxml import html
 import requests
 
 from scrappers.base_scrapper import parse_postal_code
-from scrappers.traceback import get_traceback
+from scrappers.traceback import get_traceback, save_error_report
 import dateparser
 from extraction_services.models import HouseAuction, ErrorReport
 from price_parser import Price
@@ -65,7 +65,7 @@ def parse_properties(results):
         propertyLink = base_url + get_attrib(property, "a", 0, "href")
         numberOfBedrooms = get_text(property, 0, ".//i[@class='fa fa-bed']//following-sibling::span")
         address = get_text(property, 0, ".//li[@class='auction-card--contend-address']")
-        postcode = parse_postal_code(address)
+        postcode = parse_postal_code(address, __file__)
         price = get_text(property, 0, ".//li[@class='auction-card--guide-price']//following-sibling::li")
         guidePrice = prepare_price(price)[0]
         currency = prepare_price(price)[1]
@@ -87,15 +87,11 @@ def parse_properties(results):
             "address": address,
             "postal_code": postcode,
             "number_of_bedrooms": numberOfBedrooms,
-            "auction_datetime": auction_date,  # TODO : combine date and hour
-            # "auction_hour": auc_hours,  combine it with auction_date_time
+            "auction_datetime": auction_date,
             "tenure": tenure,
             "source": "sdlauctions.co.uk"
         }
-        if house_auction := HouseAuction.objects.filter(property_link=propertyLink):
-            house_auction.update(**data_hash)
-        else:
-            HouseAuction.objects.create(**data_hash)
+        HouseAuction.sv_upd_result(data_hash)
 
 
 def parse_auctions(results):
@@ -109,12 +105,7 @@ def parse_auctions(results):
             results = html.fromstring(response.content)
             parse_properties(results)
         except BaseException as be:
-            _traceback = get_traceback()
-            if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
-                error_report.count = error_report.count + 1
-                error_report.save()
-            else:
-                ErrorReport.objects.create(file_name="sdlauctions.py", error=str(be), trace_back=_traceback)
+            save_error_report(be, __file__)
 
 
 def run():

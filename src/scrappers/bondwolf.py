@@ -22,7 +22,7 @@ def parse_property(page, url):
     price_text = result.xpath("//h2[@class='h1 mb-1 PropertyHeader-price-value']")[0].text_content().strip()
     price, currency = prepare_price(price_text)
     address = result.xpath("//div[@class='PropertyHeader-description pr-lg-5']//h1")[0].text_content().strip()
-    postal_code = parse_postal_code(address)
+    postal_code = parse_postal_code(address, __file__)
     imagelink = result.xpath("//div[@class='slick-list draggable']//img")[0].attrib['src']
     propertyLink = page.url
     venue = get_text(result, 0, "//div[@class='AuctionDetails-location']//p")
@@ -37,12 +37,10 @@ def parse_property(page, url):
         "postal_code": postal_code,
         "auction_datetime": auction_time,
         "auction_venue": venue,
-        "source": "bondwolfe.com"
+        "source": "bondwolfe.com",
+        "tenure": tenure,
     }
-    if house_auction := HouseAuction.objects.filter(property_link=url):
-        house_auction.update(**data_hash)
-    else:
-        HouseAuction.objects.create(**data_hash)
+    HouseAuction.sv_upd_result(data_hash)
 
 
 def start():
@@ -62,12 +60,7 @@ def start():
                 url = property.xpath('.')[0].attrib['href']
                 parse_property(page, url)
             except BaseException as be:
-                _traceback = get_traceback()
-                if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
-                    error_report.count = error_report.count + 1
-                    error_report.save()
-                else:
-                    ErrorReport.objects.create(file_name="bondwolf.py", error=str(be), trace_back=_traceback)
+                save_error_report(be, __file__)
 
 
 def run():

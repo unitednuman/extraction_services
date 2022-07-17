@@ -14,9 +14,9 @@ def parse_property(url, auction_datetime, imagelink):
             "//p[contains(text(), '£')] | //p[contains(text(), 'price')]")[
                                                    0].text.replace("Invited Opening Bid", ""))
     except Exception as e:
-        pass
+        save_error_report(e, __file__, secondary_error=True)
     address = result.xpath("//h2[contains(@class,'m-0 order-1 order-lg-0')]")[0].text
-    postal_code = parse_postal_code(address)
+    postal_code = parse_postal_code(address, __file__)
     description = result.xpath("//div[@id='property-page']")[0].text_content().strip().replace("\n", " ")
     propertyType = result.xpath("//div[contains(@class, 'property-type')]")[0].text.strip()
     tenure_str = get_text(result, 0,
@@ -36,10 +36,7 @@ def parse_property(url, auction_datetime, imagelink):
         "auction_venue": "",
         "source": "bidx1.com"
     }
-    if house_auction := HouseAuction.objects.filter(property_link=response.url):
-        house_auction.update(**data_hash)
-    else:
-        HouseAuction.objects.create(**data_hash)
+    HouseAuction.sv_upd_result(data_hash)
 
 
 def run():
@@ -52,16 +49,19 @@ def run():
         result = html.fromstring(response.content)
 
         for property in result.xpath("//div[@class='card property-card  flex-fill']//a"):
-            url = base_url + property.attrib['href']
             try:
-                auction_datetime = parse_auction_date(
-                    result.xpath(
-                        "//div[@class='sale-entity-status-label sale-entity-status-label--bidding-to-be-opened']")[
-                        0].text.replace("Bidding Opens at", "").strip())
-            except:
-                auction_datetime = None
-            imagelink = result.xpath("//div[@class='property-card__image-container']//img")[0].attrib['src']
-            parse_property(url, auction_datetime, imagelink)
+                url = base_url + property.attrib['href']
+                try:
+                    auction_datetime = parse_auction_date(
+                        result.xpath(
+                            "//div[@class='sale-entity-status-label sale-entity-status-label--bidding-to-be-opened']")[
+                            0].text.replace("Bidding Opens at", "").strip())
+                except:
+                    auction_datetime = None
+                imagelink = result.xpath("//div[@class='property-card__image-container']//img")[0].attrib['src']
+                parse_property(url, auction_datetime, imagelink)
+            except BaseException as be:
+                save_error_report(be, __file__)
         try:
             page_check = result.xpath("//a[@class='page-link no-hover-shadow']")[-1].text_content()
         except:

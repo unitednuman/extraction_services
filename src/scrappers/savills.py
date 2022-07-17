@@ -1,5 +1,5 @@
 import requests
-from scrappers.traceback import get_traceback
+from scrappers.traceback import get_traceback, save_error_report
 from scrappers.base_scrapper import load_json, parse_postal_code
 from extraction_services.models import HouseAuction, ErrorReport
 
@@ -20,7 +20,7 @@ def parse_property(auction_id, lot_id, auction_date, venue):
     price = json_data['lot']['low_estimate']
     tenure = json_data['lot']['tenure']
     address = json_data['lot']['name']
-    postal_code = parse_postal_code(address)
+    postal_code = parse_postal_code(address, __file__)
     auction_datetime = auction_date
     currency = 'GBP'
     propertyLink = url + json_data['lot']['link']
@@ -37,10 +37,7 @@ def parse_property(auction_id, lot_id, auction_date, venue):
         "auction_venue": venue,
         "source": "auctions.savills.co.uk"
     }
-    if house_auction := HouseAuction.objects.filter(property_link=propertyLink):
-        house_auction.update(**data_hash)
-    else:
-        HouseAuction.objects.create(**data_hash)
+    HouseAuction.sv_upd_result(data_hash)
 
     # print(description, pictureLink, price, tenure, address, postal_code, auction_date, currency, domain, propertyLink)
     # print(propertyLink, venue)
@@ -66,12 +63,7 @@ def parse_lot(auction_id, auction_date, venue):
                 lot_id = lot["id"]
                 parse_property(auction_id, lot_id, auction_date, venue)
             except BaseException as be:
-                _traceback = get_traceback()
-                if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
-                    error_report.count = error_report.count + 1
-                    error_report.save()
-                else:
-                    ErrorReport.objects.create(file_name="savills.py", error=str(be), trace_back=_traceback)
+                save_error_report(be, __file__)
 
         offset += 100
         lots_payload['lot_offset'] = str(offset)

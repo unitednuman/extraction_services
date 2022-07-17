@@ -1,11 +1,12 @@
 import requests
 from django.utils.text import slugify
 
-from scrappers.traceback import get_traceback
+from scrappers.traceback import get_traceback, save_error_report
 from extraction_services.models import HouseAuction, ErrorReport
 import dateparser
 import re
 from price_parser import parse_price
+
 
 class AllSop:
     DOMAIN = 'https://auctions.allsop.co.uk'
@@ -77,17 +78,9 @@ class AllSop:
                     "auction_venue": details['version']['allsop_auction']['allsop_venue'],
                     "source": "auctions.allsop.co.uk"
                 }
-                if house_auction := HouseAuction.objects.filter(property_link=res.url):
-                    house_auction.update(**data_hash)
-                else:
-                    HouseAuction.objects.create(**data_hash)
+                HouseAuction.sv_upd_result(data_hash)
             except BaseException as be:
-                _traceback = get_traceback()
-                if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
-                    error_report.count = error_report.count + 1
-                    error_report.save()
-                else:
-                    ErrorReport.objects.create(file_name="allsop.py", error=str(be), trace_back=_traceback)
+                save_error_report(be, __file__)
 
     def scraper(self):
         response = self.connect_to(self.URL)

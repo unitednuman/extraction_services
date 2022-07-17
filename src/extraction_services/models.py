@@ -28,6 +28,16 @@ class HouseAuction(TimeStampedModel):
     auction_venue = models.TextField(null=True, blank=True)
     source = models.TextField(null=True, blank=True)
 
+    @classmethod
+    def sv_upd_result(cls, data: dict) -> "HouseAuction":
+        data['property_link'] = data['property_link'].strip()
+        if house_auction := HouseAuction.objects.filter(property_link=data['property_link']).first():
+            house_auction.__dict__.update(data)
+        else:
+            house_auction = HouseAuction(**data)
+        house_auction.save()
+        return house_auction
+
 
 @receiver(pre_save, sender=HouseAuction)
 def pre_save_validator(sender, instance, **kwargs):
@@ -37,8 +47,6 @@ def pre_save_validator(sender, instance, **kwargs):
         instance.currency_type = instance.currency_type.strip()
     if instance.picture_link:
         instance.picture_link = instance.picture_link.strip()
-    if instance.property_link:
-        instance.property_link = instance.property_link.strip()
     if instance.address:
         instance.address = instance.address.strip()
     if instance.postal_code:
@@ -66,3 +74,4 @@ class ErrorReport(TimeStampedModel):
     error = models.TextField(null=True, blank=True)
     trace_back = models.TextField(null=True, blank=True)
     count = models.IntegerField(default=1)
+    secondary_error = models.BooleanField(default=False)

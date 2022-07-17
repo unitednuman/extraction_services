@@ -20,7 +20,7 @@ def get_text(node, index, xpath):
         return node.xpath(xpath)[index].text_content()
     except Exception as e:
         logging.debug(f"could not find text with Xpath = {xpath}, with exception {e}")
-        return ''
+        return None
 
 
 def get_tenure(tenure_str):
@@ -69,10 +69,10 @@ def parse_auction_date(auction_date_str):
     raise Exception(f"Unable to parse date from \"{auction_date}\" string")
 
 
-def parse_postal_code(address):
+def parse_postal_code(address, filename):
     try:
         return re.search(r"(\w+\s\w+)\s*$", address).group(1)
     except BaseException as be:
         be.args = be.args + (address,)
-        save_error_report(be)
+        save_error_report(be, filename)
         return None

@@ -1,5 +1,5 @@
 from extraction_services.models import ErrorReport
-from scrappers.traceback import get_traceback
+from scrappers.traceback import get_traceback, save_error_report
 import os
 import importlib
 import logging
@@ -25,12 +25,13 @@ def run():
         except BaseException as be:
             # logging.error("error in :", name)
             print("error in :", name)
-            _traceback = get_traceback()
-            if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
-                error_report.count = error_report.count + 1
-                error_report.save()
-            else:
-                ErrorReport.objects.create(file_name=name, error=str(be), trace_back=_traceback)
+            save_error_report(be, name)
+            # _traceback = get_traceback()
+            # if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
+            #     error_report.count = error_report.count + 1
+            #     error_report.save()
+            # else:
+            #     ErrorReport.objects.create(file_name=name, error=str(be), trace_back=_traceback)
 
 
 

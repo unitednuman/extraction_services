@@ -64,18 +64,16 @@ class AuctionHouseLondon:
                         "auction_venue": None,
                         "source": "auctionhouselondon.co.uk"
                     }
-                    if house_auction := HouseAuction.objects.filter(property_link=lot_details['Thumbnail']):
-                        house_auction.update(**data_hash)
-                    else:
-                        HouseAuction.objects.create(**data_hash)
+                    HouseAuction.sv_upd_result(data_hash)
                 except BaseException as be:
-                    _traceback = get_traceback()
-                    if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
-                        error_report.count = error_report.count + 1
-                        error_report.save()
-                    else:
-                        ErrorReport.objects.create(file_name="auctionhouselondon.py", error=str(be),
-                                                   trace_back=_traceback)
+                    save_error_report(be, __file__)
+                    # _traceback = get_traceback()
+                    # if error_report := ErrorReport.objects.filter(trace_back=_traceback).first():
+                    #     error_report.count = error_report.count + 1
+                    #     error_report.save()
+                    # else:
+                    #     ErrorReport.objects.create(file_name="auctionhouselondon.py", error=str(be),
+                    #                                trace_back=_traceback)
 
     def scraper(self):
         response = self.connect_to(self.URL)
