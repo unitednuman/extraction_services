@@ -5,6 +5,17 @@ import logging
 import json
 from json import JSONDecodeError
 from scrappers.traceback import save_error_report
+logging.basicConfig(format="%(name)s :: %(levelname)s :: %(message)s", level=logging.DEBUG)
+
+
+def disable_other_loggers():
+    for name in logging.root.manager.loggerDict:
+        # print("logger", name)
+        logging.getLogger(name).disabled = True
+
+
+disable_other_loggers()
+logger = logging.getLogger('scrapers')
 
 
 def load_json(content):
@@ -19,7 +30,7 @@ def get_text(node, index, xpath):
     try:
         return node.xpath(xpath)[index].text_content()
     except Exception as e:
-        logging.debug(f"could not find text with Xpath = {xpath}, with exception {e}")
+        logger.debug(f"could not find text with Xpath = {xpath}, with exception {e}")
         return None
 
 
@@ -39,7 +50,7 @@ def get_attrib(node, xpath, index, attribute):
     try:
         return node.xpath(xpath)[index].attrib[attribute]
     except Exception as e:
-        logging.debug(f"could not find Attribute with Xpath = {xpath}, with exception {e}")
+        logger.debug(f"could not find Attribute with Xpath = {xpath}, with exception {e}")
         return ''
 
 
