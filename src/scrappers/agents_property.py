@@ -15,6 +15,10 @@ def parse_property(url, venue, auction_datetime):
     imagelink = result.xpath("//div[@class='gallery-img']//img")[0].attrib['src']
     no_of_beds = result.xpath("//h1[@class='single-property-title']")[0].text.split('Bedroom')[0] or \
                  result.xpath("//h1[@class='single-property-title']")[0].text.split('Bedrooms')[0]
+    try:
+        no_of_beds = int(no_of_beds.strip())
+    except:
+        no_of_beds = 0
     description = result.xpath("//div[@class='tabs-container container']")[0].text_content()
     data_hash = {
         "price": price,
