@@ -13,12 +13,13 @@ def parse_property(url, venue, auction_datetime):
     postal_code = parse_postal_code(address, __file__)
     price, currency_symbol = prepare_price(result.xpath("//p[@class='single-property-price']")[0].text)
     imagelink = result.xpath("//div[@class='gallery-img']//img")[0].attrib['src']
-    no_of_beds = result.xpath("//h1[@class='single-property-title']")[0].text.split('Bedroom')[0] or \
-                 result.xpath("//h1[@class='single-property-title']")[0].text.split('Bedrooms')[0]
+    no_of_beds = result.xpath("//h1[@class='single-property-title']")[0].text.split('Bedroom')[0]
     try:
         no_of_beds = int(no_of_beds.strip())
-    except:
-        no_of_beds = 0
+    except Exception as e:
+        e.args = e.args + (f"{no_of_beds = }",)
+        save_error_report(e, __file__, secondary_error=True)
+        no_of_beds = None
     description = result.xpath("//div[@class='tabs-container container']")[0].text_content()
     data_hash = {
         "price": price,
