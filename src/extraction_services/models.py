@@ -1,5 +1,7 @@
 import re
+from threading import Thread
 
+from django.core.exceptions import SynchronousOnlyOperation
 from django.db import models
 from django.utils.html import strip_tags
 from model_utils.models import TimeStampedModel
@@ -30,6 +32,15 @@ class HouseAuction(TimeStampedModel):
 
     @classmethod
     def sv_upd_result(cls, data: dict) -> "HouseAuction":
+        try:
+            return cls._sv_upd_result(data)
+        except SynchronousOnlyOperation:
+            t = Thread(target=cls._sv_upd_result, args=(data,))
+            t.start()
+            t.join()
+
+    @classmethod
+    def _sv_upd_result(cls, data: dict) -> "HouseAuction":
         data['property_link'] = data['property_link'].strip()
         if house_auction := HouseAuction.objects.filter(property_link=data['property_link']).first():
             house_auction.__dict__.update(data)

@@ -3,7 +3,7 @@ import re
 from lxml import html
 import requests
 
-from scrappers.base_scrapper import parse_postal_code
+from scrappers.base_scrapper import parse_postal_code, get_tenure
 from scrappers.traceback import get_traceback, save_error_report
 import dateparser
 from extraction_services.models import HouseAuction, ErrorReport
@@ -63,7 +63,7 @@ def parse_properties(results):
     for property in results.xpath("//div[@class='auction-card']//div[@class='auction-card--content']"):
 
         propertyLink = base_url + get_attrib(property, "a", 0, "href")
-        numberOfBedrooms = get_text(property, 0, ".//i[@class='fa fa-bed']//following-sibling::span")
+        numberOfBedrooms = get_text(property, 0, ".//i[@class='fa fa-bed']//following-sibling::span", False)
         address = get_text(property, 0, ".//li[@class='auction-card--contend-address']")
         postcode = parse_postal_code(address, __file__)
         price = get_text(property, 0, ".//li[@class='auction-card--guide-price']//following-sibling::li")
@@ -75,7 +75,8 @@ def parse_properties(results):
         result = html.fromstring(response.content)
         propertyDescription = get_text(result, 0,
                                        "//div[contains(text(),'Property Description:')]//following-sibling::p")
-        tenure = get_text(result, 0, "//div[contains(text(),'Tenure: ')]//following-sibling::p")
+        tenure_str = get_text(result, 0, "//div[contains(text(),'Tenure: ')]//following-sibling::p")
+        tenure = get_tenure(tenure_str)
         pictureLink = get_attrib(result, "//a[@data-lightbox='property-image']//img", 1, "src")
         data_hash = {
             # "_id": details["version"]["allsop_auctionid"],
@@ -91,6 +92,7 @@ def parse_properties(results):
             "tenure": tenure,
             "source": "sdlauctions.co.uk"
         }
+        print(data_hash)
         HouseAuction.sv_upd_result(data_hash)
 
 
