@@ -49,12 +49,12 @@ def start():
         page = browser.new_page()
         page.goto(start_url)
         page.locator("//label[@for='postPerPage5']").first.click()
+        time.sleep(3)
         result = html.fromstring(page.content())
         if result.xpath("//h3[contains(text(), 'Properties coming soon.')]"):
             print("No Properties Found")
             browser.close()
             return
-
         for property in result.xpath("//a[@class='PropertyCard']"):
             try:
                 url = property.xpath('.')[0].attrib['href']

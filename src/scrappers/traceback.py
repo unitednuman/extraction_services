@@ -1,5 +1,9 @@
 import io
 import traceback
+from threading import Thread
+
+from django.core.exceptions import SynchronousOnlyOperation
+
 from extraction_services.models import ErrorReport
 
 
@@ -11,6 +15,15 @@ def get_traceback():
 
 
 def save_error_report(exception, filename, **kwargs):
+    try:
+        _save_error_report(exception, filename, **kwargs)
+    except SynchronousOnlyOperation:
+        t = Thread(target=_save_error_report, args=(exception, filename,), kwargs=kwargs)
+        t.start()
+        t.join()
+
+
+def _save_error_report(exception, filename, **kwargs):
     _traceback = get_traceback()
     exception = str(exception)
     if error_report := ErrorReport.objects.filter(trace_back=_traceback, error=exception).first():
