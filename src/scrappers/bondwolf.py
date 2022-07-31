@@ -57,9 +57,7 @@ def parse_property(page, url):
 
 def start():
     with sync_playwright() as p:
-        input("inside playwright bef chrome")
         browser = p.chromium.launch(headless=True)
-        input("inside playwright aft chrome")
         page = browser.new_page()
         page.goto(start_url)
         page.locator("//label[@for='postPerPage5']").first.click()

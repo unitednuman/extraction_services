@@ -17,7 +17,7 @@ def run():
         module_names.remove("__pycache__")
     for name in module_names:
         # logging.info("Running :", name)
-        logger.info(f"Running :{name}")
+        logger.info(f"Running: {name}")
         try:
             module = importlib.import_module(f"scrappers.{name[:-3]}")
             if hasattr(module, 'run'):

@@ -1,15 +1,12 @@
+import inspect
+import logging
+import os
 import re
 from threading import Thread
-
 from django.core.exceptions import SynchronousOnlyOperation
 from django.db import models
 from django.utils.html import strip_tags
 from model_utils.models import TimeStampedModel
-from datetime import timedelta
-from django.utils.timezone import now
-import django
-import datetime
-import pytz
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
@@ -35,18 +32,27 @@ class HouseAuction(TimeStampedModel):
         try:
             return cls._sv_upd_result(data)
         except SynchronousOnlyOperation:
-            t = Thread(target=cls._sv_upd_result, daemon=True, args=(data,))
+            results = []
+            t = Thread(target=cls._sv_upd_result, daemon=True, args=(data, results))
             t.start()
             t.join()
+            return results[0]
 
     @classmethod
-    def _sv_upd_result(cls, data: dict) -> "HouseAuction":
+    def _sv_upd_result(cls, data: dict, results: list = None) -> "HouseAuction":
+        try:
+            filenames = ", ".join([os.path.basename(s.filename) for s in inspect.stack()])
+        except:
+            filenames = ""
+        logging.info(f"{filenames}: Saving HouseAuction")
         data['property_link'] = data['property_link'].strip()
         if house_auction := HouseAuction.objects.filter(property_link=data['property_link']).first():
             house_auction.__dict__.update(data)
         else:
             house_auction = HouseAuction(**data)
         house_auction.save()
+        if results is not None:
+            results.append(house_auction)
         return house_auction
 
 

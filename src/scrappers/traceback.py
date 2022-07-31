@@ -1,9 +1,8 @@
 import io
 import traceback
+import logging
 from threading import Thread
-
 from django.core.exceptions import SynchronousOnlyOperation
-
 from extraction_services.models import ErrorReport
 
 
@@ -26,6 +25,7 @@ def save_error_report(exception, filename, **kwargs):
 def _save_error_report(exception, filename, **kwargs):
     _traceback = get_traceback()
     exception = str(exception)
+    logging.error(f"{filename}: Got error {exception}, {kwargs}")
     if error_report := ErrorReport.objects.filter(trace_back=_traceback, error=exception).first():
         error_report.count = error_report.count + 1
         error_report.__dict__.update(kwargs)

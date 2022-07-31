@@ -6,7 +6,7 @@ import json
 from json import JSONDecodeError
 from scrappers.traceback import save_error_report
 
-logging.basicConfig(format="%(name)s :: %(levelname)s :: %(message)s", level=logging.DEBUG)
+logging.basicConfig(format="%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s", level=logging.DEBUG)
 
 
 def disable_other_loggers():
