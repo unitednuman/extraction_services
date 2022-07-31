@@ -1,8 +1,7 @@
 import time
 from lxml import html
 from scrappers.base_scrapper import *
-from scrappers.traceback import get_traceback
-from extraction_services.models import HouseAuction, ErrorReport
+from extraction_services.models import HouseAuction
 from playwright.sync_api import sync_playwright
 
 start_url = "https://www.bondwolfe.com/auctions/properties/?location=&minprice=&maxprice=&type="
@@ -13,6 +12,7 @@ def parse_property(page, url):
     time.sleep(5)
     response = page.content()
     result = html.fromstring(response)
+    fix_br_tag_issue(result)
     auction_time = parse_auction_date(
         result.xpath("//div[@class='AuctionDetails-datetime']//h2")[0].text_content().strip())
     description = result.xpath("//h4[contains(text(), 'Property Description')]//parent::div")[0].text_content().strip()
@@ -21,8 +21,18 @@ def parse_property(page, url):
     tenure = get_tenure(tenure_str)
     price_text = result.xpath("//h2[@class='h1 mb-1 PropertyHeader-price-value']")[0].text_content().strip()
     price, currency = prepare_price(price_text)
-    address = result.xpath("//div[@class='PropertyHeader-description pr-lg-5']//h1")[0].text_content().strip()
+    address, *other_details = result.xpath("//div[@class='PropertyHeader-description pr-lg-5']")[0].text_content().strip().split('\n')
     postal_code = parse_postal_code(address, __file__)
+    if other_details:
+        detail = other_details[0]
+        if 'bedroom' in detail and (match := re.search(r"(\d+)\sbedroom", detail, flags=re.I)):
+            number_of_bedrooms = int(match.group(1))
+        else:
+            number_of_bedrooms = None
+        property_type = get_property_type(detail)
+    else:
+        property_type = None
+        number_of_bedrooms = None
     imagelink = result.xpath("//div[@class='slick-list draggable']//img")[0].attrib['src']
     propertyLink = page.url
     venue = get_text(result, 0, "//div[@class='AuctionDetails-location']//p")
@@ -38,6 +48,8 @@ def parse_property(page, url):
         "auction_datetime": auction_time,
         "auction_venue": venue,
         "source": "bondwolfe.com",
+        "property_type": property_type,
+        "number_of_bedrooms": number_of_bedrooms,
         "tenure": tenure,
     }
     HouseAuction.sv_upd_result(data_hash)
@@ -45,12 +57,15 @@ def parse_property(page, url):
 
 def start():
     with sync_playwright() as p:
+        input("inside playwright bef chrome")
         browser = p.chromium.launch(headless=True)
+        input("inside playwright aft chrome")
         page = browser.new_page()
         page.goto(start_url)
         page.locator("//label[@for='postPerPage5']").first.click()
         time.sleep(3)
         result = html.fromstring(page.content())
+        fix_br_tag_issue(result)
         if result.xpath("//h3[contains(text(), 'Properties coming soon.')]"):
             print("No Properties Found")
             browser.close()

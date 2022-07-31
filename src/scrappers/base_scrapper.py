@@ -5,6 +5,7 @@ import logging
 import json
 from json import JSONDecodeError
 from scrappers.traceback import save_error_report
+
 logging.basicConfig(format="%(name)s :: %(levelname)s :: %(message)s", level=logging.DEBUG)
 
 
@@ -28,7 +29,7 @@ def load_json(content):
 
 def get_text(node, index, xpath):
     try:
-        return node.xpath(xpath)[index].text_content()
+        return node.xpath(xpath)[index].text_content().strip()
     except Exception as e:
         logger.debug(f"could not find text with Xpath = {xpath}, with exception {e}")
         return None
@@ -80,10 +81,28 @@ def parse_auction_date(auction_date_str):
     raise Exception(f"Unable to parse date from \"{auction_date}\" string")
 
 
-def parse_postal_code(address, filename):
+def parse_postal_code(text, fn_for_error_report):
     try:
-        return re.search(r"(\w+\s\w+)\s*$", address).group(1)
+        return re.search(r"(\w+\s\w+)\s*$", text).group(1)
     except BaseException as be:
-        be.args = be.args + (address,)
-        save_error_report(be, filename)
+        be.args = be.args + (text,)
+        save_error_report(be, fn_for_error_report)
         return None
+
+
+property_types_re = re.compile(r"\b" + r"\b|\b".join([
+    'end-of-terrace-house', 'land', 'terraced-house', 'flat', 'semi-detached-house', 'shop', 'cottage',
+    'detached-house', 'apartment', 'detached-bungalow', 'commercial', 'bungalow', 'studio', 'terraced',
+    'semi-detached', 'detached'
+]) + r"\b", flags=re.I)
+
+
+def get_property_type(text):
+    if match := property_types_re.search(text):
+        return match.group()
+    return "other"
+
+
+def fix_br_tag_issue(doc):
+    for br in doc.xpath("*//br"):
+        br.tail = "\n" + br.tail if br.tail else "\n"

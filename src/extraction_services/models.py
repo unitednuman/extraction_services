@@ -35,7 +35,7 @@ class HouseAuction(TimeStampedModel):
         try:
             return cls._sv_upd_result(data)
         except SynchronousOnlyOperation:
-            t = Thread(target=cls._sv_upd_result, args=(data,))
+            t = Thread(target=cls._sv_upd_result, daemon=True, args=(data,))
             t.start()
             t.join()
 
@@ -73,7 +73,7 @@ def pre_save_validator(sender, instance, **kwargs):
     if isinstance(instance.number_of_bedrooms, str):
         if match := re.search(r"(\d+) Bedrooms?", instance.number_of_bedrooms):
             instance.number_of_bedrooms = int(match.group(1))
-    else:
+    elif not isinstance(instance.number_of_bedrooms, int):
         instance.number_of_bedrooms = None
 
 

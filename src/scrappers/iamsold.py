@@ -4,8 +4,7 @@ import re
 from lxml import html
 import requests
 from scrappers.base_scrapper import *
-from scrappers.traceback import get_traceback
-from extraction_services.models import HouseAuction, ErrorReport
+from extraction_services.models import HouseAuction
 
 
 def parse_properties(html_content):
@@ -16,7 +15,7 @@ def parse_properties(html_content):
 
             price_str = get_text(property, 1, ".//div[@class='properties-preview-content-price']//span")
             price, currency_symbol = prepare_price(price_str)
-            address = get_text(property, 0, ".//div[@class='properties-preview-content-details']")
+            # address = get_text(property, 0, ".//div[@class='properties-preview-content-details']")
             tenure = get_text(property, 0, "(.//span[@id='properties-inner-message'])[last()]")
             if match := re.search(r'(leasehold|freehold)', tenure, flags=re.I):
                 tenure = match.group(1).title()
@@ -31,6 +30,10 @@ def parse_properties(html_content):
                 propertyLink = "https://www.iamsold.co.uk" + detailed_page_url
                 response = requests.get(propertyLink)
                 result = html.fromstring(response.content)
+                fix_br_tag_issue(result)
+                detail = get_text(result, 0, "//span[@class='text-primary-de']")
+                property_type = get_property_type(detail)
+                address = get_text(result, 0, "//h1[@id='properties-inner-details-address-summary']")
                 end_time = get_attrib(result, "//span[@class='end_time_auto']", 0, "data-time-end")
                 if not end_time:
                     end_time = get_text(result, -1, "//span[@class='stat-value stat-value--large']")
@@ -53,7 +56,8 @@ def parse_properties(html_content):
                 "auction_datetime": auction_datetime,
                 "auction_venue": venue,
                 "source": "iamsold.co.uk",
-                "tenure": tenure
+                "tenure": tenure,
+                "property_type": property_type
             }
             HouseAuction.sv_upd_result(data_hash)
         except BaseException as be:
@@ -85,6 +89,7 @@ def run():
     response = requests.request("POST", url, data=payload)
     results = json.loads(response.content)
     content = html.fromstring(results['properties'])
+    fix_br_tag_issue(content)
     parse_properties(content)
     total_pages = int(int(results['totalProperties']) / 12)
     for page in range(2, total_pages + 1):
@@ -92,4 +97,5 @@ def run():
         response = requests.request("POST", url, data=payload)
         results = json.loads(response.content)
         content = html.fromstring(results['properties'])
+        fix_br_tag_issue(content)
         parse_properties(content)

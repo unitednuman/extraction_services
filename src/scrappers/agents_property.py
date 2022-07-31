@@ -8,19 +8,30 @@ from extraction_services.models import HouseAuction, ErrorReport
 def parse_property(url, venue, auction_datetime):
     response = requests.get(url)
     result = html.fromstring(response.content)
+    fix_br_tag_issue(result)
     address = result.xpath("//div[@class='single-property-galleries row u-bg-white col-wrapper flex-wrapper']//p")[
         0].text
     postal_code = parse_postal_code(address, __file__)
     price, currency_symbol = prepare_price(result.xpath("//p[@class='single-property-price']")[0].text)
     imagelink = result.xpath("//div[@class='gallery-img']//img")[0].attrib['src']
-    no_of_beds = result.xpath("//h1[@class='single-property-title']")[0].text.split('Bedroom')[0]
-    try:
-        no_of_beds = int(no_of_beds.strip())
-    except Exception as e:
-        e.args = e.args + (f"{no_of_beds = }",)
-        save_error_report(e, __file__, secondary_error=True)
+    property_title = result.xpath("//h1[@class='single-property-title']")[0].text
+    property_type = get_property_type(property_title)
+    if 'Bedroom' in property_title:
+        no_of_beds = int(property_title.split('Bedroom')[0].strip())
+    else:
         no_of_beds = None
+    # try:
+    #     no_of_beds = int(no_of_beds.strip())
+    # except Exception as e:
+    #     e.args = e.args + (f"{no_of_beds = }",)
+    #     save_error_report(e, __file__, secondary_error=True)
+    #     no_of_beds = None
     description = result.xpath("//div[@class='tabs-container container']")[0].text_content()
+    if match := re.search(r"\n\s*Tenure[^\n]+", description, flags=re.I):
+        text = match.group()
+        tenure = get_tenure(text)
+    else:
+        tenure = None
     data_hash = {
         "price": price,
         "currency_type": currency_symbol,
@@ -32,6 +43,8 @@ def parse_property(url, venue, auction_datetime):
         "number_of_bedrooms": no_of_beds,
         "auction_datetime": auction_datetime,
         "auction_venue": venue,
+        "tenure": tenure,
+        "property_type": property_type,
         "source": "agentspropertyauction.com"
     }
     HouseAuction.sv_upd_result(data_hash)
@@ -41,6 +54,7 @@ def run():
     url = "https://www.agentspropertyauction.com/next-auction/"
     response = requests.request("GET", url)
     result = html.fromstring(response.content)
+    fix_br_tag_issue(result)
     venue = result.xpath("//h1[@class='hero-subtitle']")[0].text
     auction_datetime = result.xpath("//p[@class='hero-title']")[0].text + " " + \
                                           result.xpath("//p[@class='hero-subtitle']")[
