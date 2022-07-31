@@ -7,6 +7,7 @@ from extraction_services.models import HouseAuction
 def parse_property(url, auction_datetime, imagelink):
     response = requests.get(url)
     result = html.fromstring(response.content)
+    fix_br_tag_issue(result)
     price = None
     currency_symbol = None
     try:
@@ -47,7 +48,7 @@ def run():
         base_url = "https://bidx1.com"
         response = requests.request("GET", url)
         result = html.fromstring(response.content)
-
+        fix_br_tag_issue(result)
         for property in result.xpath("//div[@class='card property-card  flex-fill']//a"):
             try:
                 url = base_url + property.attrib['href']

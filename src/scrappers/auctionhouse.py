@@ -1,8 +1,7 @@
 import requests
 from lxml import html
 from scrappers.base_scrapper import *
-from extraction_services.models import HouseAuction, ErrorReport
-from scrappers.traceback import get_traceback
+from extraction_services.models import HouseAuction
 
 
 class AuctionHouse:
@@ -50,6 +49,7 @@ class AuctionHouse:
                     lot_link = self.DOMAIN + lot_link
                 res = self.connect_to(lot_link)
                 parsed_content = html.fromstring(res.content)
+                fix_br_tag_issue(parsed_content)
                 price_str = \
                     parsed_content.xpath("//h4[@class='guideprice']//text() | //b[contains(text(),'Guide')]//text()")[0]
                 price, currency = prepare_price(price_str)
@@ -115,9 +115,9 @@ class AuctionHouse:
                 #     ErrorReport.objects.create(file_name="auctionhouse.py", error=str(be), trace_back=_traceback)
 
     def scraper(self):
-
         response = self.connect_to(self.URL)
         parsed_response = html.fromstring(response.content)
+        fix_br_tag_issue(parsed_response)
         self.parser(parsed_response)
 
 

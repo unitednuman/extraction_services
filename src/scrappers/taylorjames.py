@@ -1,13 +1,13 @@
 import requests
 from lxml import html
 from scrappers.base_scrapper import *
-from scrappers.traceback import get_traceback
 from extraction_services.models import HouseAuction, ErrorReport
 
 
 def parse_property(property_url, auction_datetime, auction_venue, imagelink):
     response = requests.get(property_url)
     result = html.fromstring(response.content)
+    fix_br_tag_issue(result)
     no_of_beds = get_text(result, 0, "//span[@class='property-detail-icon property-detail-icon-beds']/span")
     guide_price = prepare_price(result.xpath("//div[@class='price']")[0].text_content())[0]
     currency_symbol = prepare_price(result.xpath("//div[@class='price']")[0].text_content())[1]
@@ -33,6 +33,7 @@ def parse_property(property_url, auction_datetime, auction_venue, imagelink):
 def parse_auction(auction_url, auction_venue):
     response = requests.get(auction_url)
     result = html.fromstring(response.content)
+    fix_br_tag_issue(result)
     auction_datetime = parse_auction_date(
         result.xpath("//h1//parent::div")[0].text_content().replace("Auction", "").replace("Bidding opens at",
                                                                                            "").strip())
@@ -49,6 +50,7 @@ def run():
     url = "https://www.taylorjamesauctions.co.uk/property-auctions/"
     response = requests.request("GET", url)
     result = html.fromstring(response.content)
+    fix_br_tag_issue(result)
     count = 0
     for auction in result.xpath("//div[@class='container auction']//div[@class='row']"):
         if count >= 2:

@@ -3,10 +3,10 @@ import re
 from lxml import html
 import requests
 
-from scrappers.base_scrapper import parse_postal_code, get_tenure
-from scrappers.traceback import get_traceback, save_error_report
+from scrappers.base_scrapper import parse_postal_code, get_tenure, fix_br_tag_issue, get_property_type
+from scrappers.traceback import save_error_report
 import dateparser
-from extraction_services.models import HouseAuction, ErrorReport
+from extraction_services.models import HouseAuction
 from price_parser import Price
 
 base_url = "https://www.sdlauctions.co.uk"
@@ -63,6 +63,7 @@ def parse_properties(results):
     for property in results.xpath("//div[@class='auction-card']//div[@class='auction-card--content']"):
 
         propertyLink = base_url + get_attrib(property, "a", 0, "href")
+        property_type = get_property_type(propertyLink)
         numberOfBedrooms = get_text(property, 0, ".//i[@class='fa fa-bed']//following-sibling::span", False)
         address = get_text(property, 0, ".//li[@class='auction-card--contend-address']")
         postcode = parse_postal_code(address, __file__)
@@ -73,6 +74,7 @@ def parse_properties(results):
         auction_date = parse_auction_date(auction_date)
         response = requests.get(propertyLink)
         result = html.fromstring(response.content)
+        fix_br_tag_issue(result)
         propertyDescription = get_text(result, 0,
                                        "//div[contains(text(),'Property Description:')]//following-sibling::p")
         tenure_str = get_text(result, 0, "//div[contains(text(),'Tenure: ')]//following-sibling::p")
@@ -90,9 +92,10 @@ def parse_properties(results):
             "number_of_bedrooms": numberOfBedrooms,
             "auction_datetime": auction_date,
             "tenure": tenure,
+            "property_type": property_type,
             "source": "sdlauctions.co.uk"
         }
-        print(data_hash)
+        # print(data_hash)
         HouseAuction.sv_upd_result(data_hash)
 
 
@@ -105,6 +108,7 @@ def parse_auctions(results):
                        'data': f'location=&minBeds=&maxBeds=&minPrice=&maxPrice=&lat=&lng=&bounds=&tempType=auction&search=1&radius=3&auctionId={auction_id}&include%5B%5D=&limit=All&page=1&order=Lot Number&oos=0'}
             response = requests.post(url, data=payload)
             results = html.fromstring(response.content)
+            fix_br_tag_issue(results)
             parse_properties(results)
         except BaseException as be:
             save_error_report(be, __file__)
@@ -113,4 +117,5 @@ def parse_auctions(results):
 def run():
     response = requests.get("https://www.sdlauctions.co.uk/property-auctions/auction-events/")
     results = html.fromstring(response.content)
+    fix_br_tag_issue(results)
     parse_auctions(results)
