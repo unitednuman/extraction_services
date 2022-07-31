@@ -41,8 +41,9 @@ class HouseAuction(TimeStampedModel):
     @classmethod
     def _sv_upd_result(cls, data: dict, results: list = None) -> "HouseAuction":
         try:
-            filenames = ", ".join([os.path.basename(s.filename) for s in inspect.stack()])
-        except:
+            filenames = ", ".join({os.path.basename(s.filename) for s in inspect.stack() if r"scrappers" in s.filename})
+        except Exception as e:
+            logging.debug(f"error while fetching filenames: {e}")
             filenames = ""
         logging.info(f"{filenames}: Saving HouseAuction")
         data['property_link'] = data['property_link'].strip()
