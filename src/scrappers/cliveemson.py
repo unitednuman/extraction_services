@@ -15,14 +15,20 @@ def parse_property(auction_url, auction_image , auction_lot, auction_title, auct
     try:
         response = requests.get(auction_url)
         result = html.fromstring(response.content)
-        no_of_beds = None
-        guidePrice = prepare_price(auction_price)[0]
-        currency = prepare_price(auction_price)[1]
+        fix_br_tag_issue(result)
+        guidePrice, currency = prepare_price(auction_price)
         address = result.xpath("//address[@class='lot-address']")[0].text_content()
         postal_code = parse_postal_code(address, __file__)
         description = result.xpath("//section[@class='single-content single-lot-content']")[0].text_content()
-        property_type=get_property_type(auction_title)
-        tenure=get_tenure(description)
+        property_type_text=result.xpath("//section[@class='single-content single-lot-content']/p")[0].text_content()
+        property_type=get_property_type(property_type_text)
+        tenure_text=result.xpath("//section[@class='single-content single-lot-content']/h4[last()]")[0].text_content()
+        tenure=get_tenure(tenure_text)
+        no_of_beds =get_bedroom(auction_title.replace('-',' '))
+        if no_of_beds is None:
+            no_of_beds =get_bedroom(description)
+        if no_of_beds is not None:
+            no_of_beds=convert_words_to_integer(no_of_beds.lower())
         data_hash = {
             "price": guidePrice,
             "currency_type": currency,
@@ -48,6 +54,7 @@ def run():
 
     response = requests.request("POST", url, headers=headers, data=payload)
     results = html.fromstring(response.content)
+    fix_br_tag_issue(results)
     try:
         for result in results.xpath("//div[@class='auction auction-listings']"):
             auction_date = get_text(result, 0, "//div[@class='auction-info']").split(': ')[1].replace(' Auction','').strip()
@@ -70,7 +77,7 @@ def helpers():
     'accept-language': 'en-US,en;q=0.9',
     'cache-control': 'max-age=0',
     'content-type': 'application/x-www-form-urlencoded',
-    'cookie': 'PHPSESSID=r2k2bvo0rgk7cqna7qr5mmm5a0; CEA_CookieConsent={%22essential%22:true%2C%22functional%22:true%2C%22analytic%22:true}; CEA_ListingsView=grid',
+    # 'cookie': 'PHPSESSID=r2k2bvo0rgk7cqna7qr5mmm5a0; CEA_CookieConsent={%22essential%22:true%2C%22functional%22:true%2C%22analytic%22:true}; CEA_ListingsView=grid',
     'origin': 'https://www.cliveemson.co.uk',
     'referer': 'https://www.cliveemson.co.uk/search/',
     'sec-ch-ua': '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',

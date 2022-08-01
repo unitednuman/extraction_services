@@ -93,7 +93,7 @@ def parse_postal_code(text, fn_for_error_report):
 property_types_re = re.compile(r"\b" + r"\b|\b".join([
     'end-of-terrace-house', 'land', 'terraced-house', 'flat', 'semi-detached-house', 'shop', 'cottage',
     'detached-house', 'apartment', 'detached-bungalow', 'commercial', 'bungalow', 'studio', 'terraced',
-    'semi-detached', 'detached'
+    'semi-detached', 'detached','end-terrace','mid-terrace'
 ]) + r"\b", flags=re.I)
 
 
@@ -106,3 +106,25 @@ def get_property_type(text):
 def fix_br_tag_issue(doc):
     for br in doc.xpath("*//br"):
         br.tail = "\n" + br.tail if br.tail else "\n"
+
+
+
+
+
+def get_bedroom(text):
+    numRooms = re.search(r'(\w+\+?) *(?:double +)?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)', text, re.IGNORECASE)
+    if (numRooms):
+        if (numRooms.group(1) is not None):
+            return numRooms.group(1)
+        elif (numRooms.group(2) is not None):
+            return numRooms.group(2)
+    return None
+
+def convert_words_to_integer(word):
+    numbers = { "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10 }
+    try:
+        return numbers[word.strip()]
+    except:
+        raise Exception(f"word numbers \"{word}\" not matching with available ones.")
+    
+    return None
