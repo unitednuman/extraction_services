@@ -11,7 +11,27 @@ from scrappers.base_scrapper import *
 from scrappers.traceback import get_traceback, save_error_report
 from extraction_services.models import HouseAuction, ErrorReport
 
-def parse_property(auction_url, auction_image , auction_lot, auction_title, auction_price,auction_date):
+
+def get_bedroom(text):
+    numRooms = re.search(r'(\w+\+?) *(?:double +)?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)', text, re.IGNORECASE)
+    if (numRooms):
+        if (numRooms.group(1) is not None):
+            return numRooms.group(1)
+        elif (numRooms.group(2) is not None):
+            return numRooms.group(2)
+    return None
+
+def convert_words_to_integer(word):
+    numbers = { "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10 }
+    try:
+        return numbers[word.strip()]
+    except:
+        raise Exception(f"word numbers \"{word}\" not matching with available ones.")
+    
+    return None
+
+
+def parse_property(auction_url, auction_image , auction_title, auction_price,auction_date):
     try:
         response = requests.get(auction_url)
         result = html.fromstring(response.content)
@@ -47,28 +67,6 @@ def parse_property(auction_url, auction_image , auction_lot, auction_title, auct
     except BaseException as be:
         save_error_report(be, __file__)
 
-def run():
-    url = "https://www.cliveemson.co.uk/search/"
-
-    payload, headers = helpers()
-
-    response = requests.request("POST", url, headers=headers, data=payload)
-    results = html.fromstring(response.content)
-    fix_br_tag_issue(results)
-    try:
-        for result in results.xpath("//div[@class='auction auction-listings']"):
-            auction_date = get_text(result, 0, "//div[@class='auction-info']").split(': ')[1].replace(' Auction','').strip()
-            auction_date = parse_auction_date(auction_date)
-            for auction in result.xpath("//div[@class='tile-col lot-status--available']"):
-                auction_url = auction.xpath(".//a[@class='tile-block-link']")[0].attrib['href']
-                auction_image = auction.xpath(".//div[@class='tile-image lot-image']/span")[0].attrib['data-image-url']
-                auction_lot = auction.xpath(".//span[@class='lot-number']")[0].text_content().replace("\r\n\t"," ").replace("\n","").replace("\t","").replace("\r","").strip()
-                auction_title = auction.xpath(".//h3[@class='tile-heading lot-name']/a")[0].text_content().replace("\r","").replace("\n","").replace("\t","")
-                auction_price = auction.xpath(".//div[@class='lot-status']/strong")[0].text_content().replace("\r","").replace("\n","").replace("\t","").replace("*","").strip()
-                parse_property(auction_url, auction_image , auction_lot, auction_title, auction_price,auction_date)
-    except BaseException as be:
-        save_error_report(be, __file__)    
-
 def helpers():
     payload='search%5Blocation%5D=&search%5Bcoords%5D=&search%5Bdistance%5D=10000000&search%5Bvenue%5D=&search%5Blot%5D='
     headers = {
@@ -92,3 +90,26 @@ def helpers():
     }
     
     return payload,headers
+
+payload, headers = helpers()
+
+
+
+def run():
+    url = "https://www.cliveemson.co.uk/search/"
+    response = requests.request("POST", url, headers=headers, data=payload)
+    results = html.fromstring(response.content)
+    fix_br_tag_issue(results)
+    try:
+        for result in results.xpath("//div[@class='auction auction-listings']"):
+            auction_date = get_text(result, 0, "//div[@class='auction-info']").split(': ')[1].replace(' Auction','').strip()
+            auction_date = parse_auction_date(auction_date)
+            for auction in result.xpath("//div[@class='tile-col lot-status--available']"):
+                auction_url = auction.xpath(".//a[@class='tile-block-link']")[0].attrib['href']
+                auction_image = auction.xpath(".//div[@class='tile-image lot-image']/span")[0].attrib['data-image-url']
+                auction_title = auction.xpath(".//h3[@class='tile-heading lot-name']/a")[0].text_content()
+                auction_price = auction.xpath(".//div[@class='lot-status']/strong")[0].text_content().strip()
+                parse_property(auction_url, auction_image , auction_title, auction_price,auction_date)
+    except BaseException as be:
+        save_error_report(be, __file__)    
+
