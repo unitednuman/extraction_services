@@ -10,10 +10,10 @@ from json import JSONDecodeError
 from scrappers.base_scrapper import *
 from scrappers.traceback import get_traceback, save_error_report
 from extraction_services.models import HouseAuction, ErrorReport
-
+import dateutil.parser as dparser
 
 def get_bedroom(text):
-    numRooms = re.search(r'(\w+\+?) *(?:double +)?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)', text, re.IGNORECASE)
+    numRooms = re.search(r'(\w+\+?) *(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)', text, re.IGNORECASE)
     if (numRooms):
         if (numRooms.group(1) is not None):
             return numRooms.group(1)
@@ -44,7 +44,7 @@ def parse_property(auction_url, auction_image , auction_title, auction_price,auc
         property_type=get_property_type(property_type_text)
         tenure_text=result.xpath("//section[@class='single-content single-lot-content']/h4[last()]")[0].text_content()
         tenure=get_tenure(tenure_text)
-        no_of_beds =get_bedroom(auction_title.replace('-',' '))
+        no_of_beds =get_bedroom(auction_title)
         if no_of_beds is None:
             no_of_beds =get_bedroom(description)
         if no_of_beds is not None:
@@ -96,14 +96,16 @@ payload, headers = helpers()
 
 
 def run():
-    url = "https://www.cliveemson.co.uk/search/"
+    url = "https://www.cliveemson.co.uk/properties/"
     response = requests.request("POST", url, headers=headers, data=payload)
     results = html.fromstring(response.content)
     fix_br_tag_issue(results)
     try:
         for result in results.xpath("//div[@class='auction auction-listings']"):
-            auction_date = get_text(result, 0, "//div[@class='auction-info']").split(': ')[1].replace(' Auction','').strip()
-            auction_date = parse_auction_date(auction_date)
+            auction_date = get_text(result, 0, "//div[@class='auction-info']")
+            # .split(': ')[1].replace(' Auction','').strip()
+            auction_date=re.sub('["\r\t\n]',"",auction_date)
+            auction_date=dparser.parse(auction_date, fuzzy=True)
             for auction in result.xpath("//div[@class='tile-col lot-status--available']"):
                 auction_url = auction.xpath(".//a[@class='tile-block-link']")[0].attrib['href']
                 auction_image = auction.xpath(".//div[@class='tile-image lot-image']/span")[0].attrib['data-image-url']
