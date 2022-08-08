@@ -12,25 +12,6 @@ from scrappers.traceback import get_traceback, save_error_report
 from extraction_services.models import HouseAuction, ErrorReport
 import dateutil.parser as dparser
 
-def get_bedroom(text):
-    numRooms = re.search(r'(\w+\+?) *(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)', text, re.IGNORECASE)
-    if (numRooms):
-        if (numRooms.group(1) is not None):
-            return numRooms.group(1)
-        elif (numRooms.group(2) is not None):
-            return numRooms.group(2)
-    return None
-
-def convert_words_to_integer(word):
-    numbers = { "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10 }
-    try:
-        return numbers[word.strip()]
-    except:
-        raise Exception(f"word numbers \"{word}\" not matching with available ones.")
-    
-    return None
-
-
 def parse_property(auction_url, auction_image , auction_title, auction_price,auction_date):
     try:
         response = requests.get(auction_url)
@@ -44,11 +25,8 @@ def parse_property(auction_url, auction_image , auction_title, auction_price,auc
         property_type=get_property_type(property_type_text)
         tenure_text=result.xpath("//section[@class='single-content single-lot-content']/h4[last()]")[0].text_content()
         tenure=get_tenure(tenure_text)
-        no_of_beds =get_bedroom(auction_title)
-        if no_of_beds is None:
-            no_of_beds =get_bedroom(description)
-        if no_of_beds is not None:
-            no_of_beds=convert_words_to_integer(no_of_beds.lower())
+        no_of_beds = get_bedroom(auction_title) or get_bedroom(description)
+        
         data_hash = {
             "price": guidePrice,
             "currency_type": currency,
