@@ -57,14 +57,19 @@ def _run(url,property_type):
         result=results.xpath("//div[@class='property-listing padding-20 ']") + results.xpath("//div[@class='property-listing padding-20 even']")
         
         for auction in result:
-            auction_url = auction.xpath(".//a")[0].attrib['href']
-            auction_image = auction.xpath(".//img[@class='width-100']")[0].attrib['src']
-            auction_title = auction.xpath(".//a")[1].text_content()
-            auction_price = auction.xpath(".//div[@class='block font-size-26 font-weight-600']")[0].text_content().strip()
-            parse_property(auction_url, auction_image , auction_title, auction_price,property_type)
-            
-        if next_page:=results.xpath("//li[@class='button colour-white radius padding-x10 padding-y5 margin-0 inline-block vertical-middle']")[0]:
+            try:
+                auction_url = auction.xpath(".//a")[0].attrib['href']
+                auction_image = auction.xpath(".//img[@class='width-100']")[0].attrib['src']
+                auction_title = auction.xpath(".//a")[1].text_content()
+                auction_price = auction.xpath(".//div[@class='block font-size-26 font-weight-600']")[0].text_content().strip()
+                parse_property(auction_url, auction_image , auction_title, auction_price,property_type)
+            except:
+                pass    
+        if next_page:=results.xpath("//li[@title='Go to Next Page']")[0]:
             next_page_url=next_page.xpath(".//a")[0].attrib['href']
+            # if '&page=' in url:
+            #     urls=url.split('&page=')
+            #     next_page_url=urls[0]+"&page="+str(int(urls[1])+1)
             _run(next_page_url,property_type)
     except BaseException as be:
         save_error_report(be, __file__)  
