@@ -12,7 +12,8 @@ from scrappers.traceback import get_traceback, save_error_report
 from extraction_services.models import HouseAuction, ErrorReport
 import dateutil.parser as dparser
 
-def parse_property(auction_url, auction_image , property_type, auction_price):
+
+def parse_property(auction_url, auction_image, property_type, auction_price):
     try:
         response = requests.get(auction_url)
         result = html.fromstring(response.content)
@@ -21,31 +22,37 @@ def parse_property(auction_url, auction_image , property_type, auction_price):
         guidePrice, currency = prepare_price(auction_price)
         address = result.xpath("//h1[@class='section__title h2']")[0].text_content().split(' in ')[1]
         description = result.xpath("//div[@class='col-md-8 section__content']")[0].text_content().strip()
-        auction_date=re.search(r" on .*pm, | on .*am, | on .*am. | on .*pm. | at .* \nat | on .*pm ", description)
-        auction_date=auction_date.group()
-        auction_date=re.sub(r'(Monday)|(Tuesday)|(Wednesday)|(Thursday)|(Friday)|(Saturday)|(Sunday)|( at )|( \nat )| (on )',' ',auction_date).split(', ')[0].strip()
-        auction_date=parse_auction_date(auction_date)
-        if not property_type:
-            property_type=get_property_type(description)
+        auction_date = re.search(r" on .*pm, | on .*am, | on .*am. | on .*pm. | at .* \nat | on .*pm ", description)
+        auction_date = auction_date.group()
+        auction_date = \
+        re.sub(r'(Monday)|(Tuesday)|(Wednesday)|(Thursday)|(Friday)|(Saturday)|(Sunday)|( at )|( \nat )| (on )', ' ',
+               auction_date).split(', ')[0].strip()
+        auction_date = parse_auction_date(auction_date)
+        if not property_type or property_type == "other":
+            property_type = get_property_type(get_text(
+                result, 0, "//div[contains(@class, 'section__meta')]/p/text()[last()]") or '')
         postal_code = parse_postal_code(auction_title, __file__)
-        tenure=get_tenure(description)
+        tenure = get_tenure(description)
+        no_of_beds = None
         try:
-            response = requests.get(auction_url+"?layout=printdetails")
+            response = requests.get(auction_url + "?layout=printdetails")
             result = html.fromstring(response.content)
             fix_br_tag_issue(result)
-            no_of_beds =result.xpath(".//ul[@class='rooms']")[0].text_content()
+            no_of_beds = result.xpath(".//ul[@class='rooms']")[0].text_content()
             no_of_beds = get_bedroom(no_of_beds)
-        except print(0):
-            pass
-        
+        except Exception as e:
+            e.args += (no_of_beds,)
+            save_error_report(e, __file__, secondary_error=True)
+            no_of_beds = None
+
         data_hash = {
             "price": guidePrice,
             "currency_type": currency,
             "picture_link": auction_image,
             "property_description": description,
             "property_link": auction_url,
-            "property_type":property_type,
-            "tenure":tenure,
+            "property_type": property_type,
+            "tenure": tenure,
             "address": address,
             "postal_code": postal_code,
             "number_of_bedrooms": no_of_beds,
@@ -56,29 +63,30 @@ def parse_property(auction_url, auction_image , property_type, auction_price):
     except BaseException as be:
         save_error_report(be, __file__)
 
+
 def run():
     # /page-2
-    page=1
-    while page<=5:
-        pageno=""
-        if page>1:
-            pageno=f"/page-{page}"
+    page = 1
+    while page <= 5:
+        pageno = ""
+        if page > 1:
+            pageno = f"/page-{page}"
         url = f"https://www.buttersjohnbee.com/auction-properties/properties-for-sale-in-staffordshire-and-cheshire{pageno}"
         response = requests.request("GET", url)
         results = html.fromstring(response.content)
         fix_br_tag_issue(results)
         try:
-            i=0
+            i = 0
             for auction in results.xpath("//div[@class='item infinite-item property for-sale-by-auction']"):
-                auction_url = "https://www.buttersjohnbee.com"+auction.xpath(".//a")[0].attrib['href']
+                auction_url = "https://www.buttersjohnbee.com" + auction.xpath(".//a")[0].attrib['href']
                 auction_image = auction.xpath(".//div[@class='property__image']/img")[0].attrib['src']
                 # property_type=auction.xpath("//div[@class='property__content']")[0].text_content()
-                property_type = auction.xpath(".//div[@class='property__content']/text()[last()]")[0].strip()
+                property_type = get_property_type(auction.xpath(".//div[@class='property__content']/text()[last()]")[0].strip())
                 auction_price = auction.xpath(".//span[@class='price-qualifier']")[0].text_content().strip()
-                parse_property(auction_url, auction_image , property_type, auction_price)
-                i+=1
+                parse_property(auction_url, auction_image, property_type, auction_price)
+                i += 1
         except BaseException as be:
             save_error_report(be, __file__)
         if not results.xpath("//div[@class='item infinite-item property for-sale-by-auction']"):
             break
-        page+=1    
+        page += 1
