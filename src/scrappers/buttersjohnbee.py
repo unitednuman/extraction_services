@@ -25,7 +25,8 @@ def parse_property(auction_url, auction_image , property_type, auction_price):
         auction_date=auction_date.group()
         auction_date=re.sub(r'(Monday)|(Tuesday)|(Wednesday)|(Thursday)|(Friday)|(Saturday)|(Sunday)|( at )|( \nat )| (on )',' ',auction_date).split(', ')[0].strip()
         auction_date=parse_auction_date(auction_date)
-        
+        if not property_type:
+            property_type=get_property_type(description)
         postal_code = parse_postal_code(auction_title, __file__)
         tenure=get_tenure(description)
         try:
