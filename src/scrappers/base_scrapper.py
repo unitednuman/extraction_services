@@ -52,6 +52,7 @@ def get_tenure(tenure_str):
         return "Freehold"
     elif 'leasehold' in tenure_str:
         return 'Leasehold'
+    
     else:
         return ""
 
@@ -87,7 +88,7 @@ def parse_auction_date(auction_date_str):
     auction_date = dateparser.parse(auction_date_str)
     if auction_date is not None:
         return auction_date
-    raise Exception(f"Unable to parse date from \"{auction_date}\" string")
+    raise Exception(f"Unable to parse date from \"{auction_date_str}\" string")
 
 
 def parse_postal_code(text, fn_for_error_report):
@@ -143,7 +144,7 @@ def convert_words_to_integer(word):
 
 
 def get_bedroom(text):
-    numRooms = re.search(r'(\w+\+?) *(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)', text, re.IGNORECASE)
+    numRooms = re.search(r'(one|two|three|four|five|six|seven|eight|nine|ten)\+? *(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)', text, re.IGNORECASE)
     if (numRooms):
         if (numRooms.group(1) is not None):
             return convert_words_to_integer(numRooms.group(1).strip())

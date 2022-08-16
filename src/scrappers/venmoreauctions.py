@@ -35,7 +35,7 @@ headers = {
 
 
 
-def parse_property(auction_url, auction_image,address , auction_price,is_sold,auction_date):
+def parse_property(auction_url, auction_image,address , auction_price,is_sold):
     try:
         response = requests.request("GET", auction_url, headers=headers, data=payload)
         result = html.fromstring(response.content)
@@ -44,8 +44,13 @@ def parse_property(auction_url, auction_image,address , auction_price,is_sold,au
         postal_code = parse_postal_code(address, __file__)
         description = result.xpath("//div[@id='section-description']")[0].text_content()
         property_type=get_property_type(description)
-        tenure=get_tenure(description)
+        if 'tenant-in-situ' in description:
+            tenure='Leasehold'
+        else:
+            tenure="Freehold"
         no_of_beds = get_bedroom(description)
+        auction_date= result.xpath("//span[@class='font-light f-greatprimer c-red mini-1']")[0].text_content().strip().split('-')[1]
+        auction_date=parse_auction_date(auction_date)
         data_hash = {
             "price": guidePrice,
             "currency_type": currency,
@@ -59,14 +64,12 @@ def parse_property(auction_url, auction_image,address , auction_price,is_sold,au
             "number_of_bedrooms": no_of_beds,
             "auction_datetime": auction_date,
             "source": "venmoreauctions.co.uk",
-            "is_sold":is_sold
+            "is_sold":is_sold,
+            "auction_venue":"Online Auction"
         }
         HouseAuction.sv_upd_result(data_hash)
     except BaseException as be:
         save_error_report(be, __file__)
-
-
-
 
 def _run(url):        
     response = requests.request("GET", url, headers=headers, data=payload)
@@ -87,19 +90,20 @@ def _run(url):
                 
                 address = auction.xpath(".//span[@class='f-body-copy db marbot10']")[0].text_content()
                 
-                auction_date= auction.xpath("//span[@class='font-bold f-body-copy dfsb']/span")[0].text_content().strip()
-                auction_date=parse_auction_date(auction_date)
+                
                 if is_sold:
                     auction_price="£0"
                 else:
                     auction_price = auction.xpath(".//span[@class='font-bold f-greatprimer tar db p-text-green']")[0].text_content().strip()
                 
-                parse_property(auction_url, auction_image,address , auction_price,is_sold,auction_date)
+                parse_property(auction_url, auction_image,address , auction_price,is_sold)
             except:
-                pass    
-        if next_page:=results.xpath(".//a[contains(text(),'Next ')]")[0].attrib['href']:
-            next_page_url='https://www.venmoreauctions.co.uk'+next_page
-            _run(next_page_url)
+                pass
+        try:    
+            if next_page:=results.xpath(".//a[contains(text(),'Next ')]")[0].attrib['href']:
+                next_page_url='https://www.venmoreauctions.co.uk'+next_page
+                _run(next_page_url)
+        except:pass
     except BaseException as be:
         save_error_report(be, __file__)  
         
