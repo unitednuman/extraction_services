@@ -57,7 +57,7 @@ def parse_property(auction_url, auction_image,address , auction_price,is_sold,pr
             "number_of_bedrooms": no_of_beds,
             "auction_datetime": auction_date,
             "source": "auctionestates.co.uk",
-            "is_sold":is_sold
+            # "is_sold":is_sold
         }
         HouseAuction.sv_upd_result(data_hash)
     except BaseException as be:

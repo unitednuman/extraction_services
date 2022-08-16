@@ -11,6 +11,7 @@ from scrappers.base_scrapper import *
 from scrappers.traceback import get_traceback, save_error_report
 from extraction_services.models import HouseAuction, ErrorReport
 import dateutil.parser as dparser
+from datetime import datetime 
 
 def parse_property(auction_url, auction_image , auction_title, auction_price,postal_code):
     try:
@@ -20,31 +21,44 @@ def parse_property(auction_url, auction_image , auction_title, auction_price,pos
         guidePrice, currency = prepare_price(auction_price)
         address = auction_title
         
-        description = result.xpath("//div[@class='fullDescription footerGap']")[0].text_content()
-        property_type=get_property_type(description)
+        description = result.xpath("//div[@class='fullDescription footerGap']")[0].text_content().strip()
+        
         tenure=get_tenure(description)
         no_of_beds = get_bedroom(description)
+        introduction = result.xpath("//div[@id='introduction']")[0].text_content()
+        if no_of_beds is None:
+            no_of_beds = get_bedroom(introduction)
+        property_type=get_property_type(introduction)
+            
+        if 'other'==property_type:
+            property_type=get_property_type(auction_title)
+            
+        if 'other'==property_type:
+            property_type=get_property_type(description)
         auction_date=None
         try:
             auction_date= result.xpath("//span[contains(text(),'Auction: ')]")[0].text_content().replace('Auction: ','').strip()
-            auction_date=parse_auction_date(auction_date)
+            day,month,year=tuple(map(int,auction_date.split("/")))
+            auction_date=datetime(year, month, day)
         except:
             pass
-        data_hash = {
-            "price": guidePrice,
-            "currency_type": currency,
-            "picture_link": auction_image,
-            "property_description": description,
-            "property_link": auction_url,
-            "property_type":property_type,
-            "tenure":tenure,
-            "address": address,
-            "postal_code": postal_code,
-            "number_of_bedrooms": no_of_beds,
-            "auction_datetime": auction_date,
-            "source": "suttonkersh.co.uk"
-        }
-        HouseAuction.sv_upd_result(data_hash)
+        if auction_date:
+            data_hash = {
+                "price": guidePrice,
+                "currency_type": currency,
+                "picture_link": auction_image,
+                "property_description": description,
+                "property_link": auction_url,
+                "property_type":property_type,
+                "tenure":tenure,
+                "address": address,
+                "postal_code": postal_code,
+                "number_of_bedrooms": no_of_beds,
+                "auction_datetime": auction_date,
+                "source": "suttonkersh.co.uk",
+                "auction_venue":"Online Auction"
+            }
+            HouseAuction.sv_upd_result(data_hash)
     except BaseException as be:
         save_error_report(be, __file__)
 

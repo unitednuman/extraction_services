@@ -19,33 +19,40 @@ def parse_property(auction_url, auction_image , auction_title, auction_price,pro
         fix_br_tag_issue(result)
         auction_date=None
         try:
-            auction_date= result.xpath("//span[@class='inline-block vertical-middle line-height-1pt4 font-size-18 font-size-24-print font-weight-600 colour-blue margin-b5']")[1].text_content().replace('- Bidding opens','').strip() or result.xpath("//span[@class='inline-block vertical-middle line-height-1pt4 font-size-18 font-size-24-print font-weight-600 colour-blue margin-b5']")[0].text_content().replace('- Bidding opens','').strip()
+            auction_date= result.xpath("//span[@class='inline-block vertical-middle line-height-1pt4 font-size-18 font-size-24-print font-weight-600 colour-blue margin-b5']")[1].text_content().replace('- Bidding opens','').strip()
             auction_date=parse_auction_date(auction_date)
         except:
-            pass
+            try:
+                auction_date= result.xpath("//span[@class='inline-block vertical-middle line-height-1pt4 font-size-18 font-size-24-print font-weight-600 colour-blue margin-b5']")[0].text_content().replace('- Bidding opens','').strip()
+                auction_date=parse_auction_date(auction_date)
+            except:
+                pass
         guidePrice, currency = prepare_price(auction_price)
         address = result.xpath("//address")[0].text_content()
         postal_code = parse_postal_code(address, __file__)
         description = result.xpath("//div[@id='property-details']")[0].text_content()
-        
-        tenure=get_tenure(description)
-        no_of_beds =get_bedroom(description) or None
-        
-        data_hash = {
-            "price": guidePrice,
-            "currency_type": currency,
-            "picture_link": auction_image,
-            "property_description": description,
-            "property_link": auction_url,
-            "property_type":property_type,
-            "tenure":tenure,
-            "address": address,
-            "postal_code": postal_code,
-            "number_of_bedrooms": no_of_beds,
-            "auction_datetime": auction_date,
-            "source": "pugh-auctions.com"
-        }
-        HouseAuction.sv_upd_result(data_hash)
+        if 'tenanted' in description:
+            tenure="Leasehold"
+        else:
+            tenure=get_tenure(description)
+        no_of_beds =get_bedroom(description)
+        if auction_date:
+            data_hash = {
+                "price": guidePrice,
+                "currency_type": currency,
+                "picture_link": auction_image,
+                "property_description": description,
+                "property_link": auction_url,
+                "property_type":property_type,
+                "tenure":tenure,
+                "address": address,
+                "postal_code": postal_code,
+                "number_of_bedrooms": no_of_beds,
+                "auction_datetime": auction_date,
+                "source": "pugh-auctions.com",
+                "auction_venue":"Online Auction"
+            }
+            HouseAuction.sv_upd_result(data_hash)
     except BaseException as be:
         save_error_report(be, __file__)
 

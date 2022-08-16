@@ -58,7 +58,7 @@ def parse_property(auction_url, auction_image,address , auction_price,no_of_beds
             "number_of_bedrooms": no_of_beds,
             "auction_datetime": auction_date,
             "source": "dedmangray.co.uk",
-            "is_sold":is_sold
+            # "is_sold":is_sold
         }
         HouseAuction.sv_upd_result(data_hash)
     except BaseException as be:
@@ -79,7 +79,7 @@ def _run(url,property_type):
                 is_sold=False
                 try:
                     if auction.xpath(".//div[@class='slash-sold']"):
-                        is_sold=True
+                        continue
                 except:pass
                 auction_url = 'https://www.dedmangray.co.uk'+auction.xpath(".//a")[0].attrib['href']
                 auction_image = auction.xpath(".//img")[0].attrib['src']

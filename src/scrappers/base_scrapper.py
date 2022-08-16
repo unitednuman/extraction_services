@@ -130,7 +130,7 @@ def fix_br_tag_issue(doc):
 
 def convert_words_to_integer(word):
     numbers = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7,
-               "eight": 8, "nine": 9, "ten": 10}
+               "eight": 8, "nine": 9, "ten": 10,"double":2}
     try:
         return numbers[word.strip().lower()]
     except BaseException as be:
@@ -144,7 +144,7 @@ def convert_words_to_integer(word):
 
 
 def get_bedroom(text):
-    numRooms = re.search(r'(one|two|three|four|five|six|seven|eight|nine|ten)\+? *(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)', text, re.IGNORECASE)
+    numRooms = re.search(r"(one|two|three|four|five|six|seven|eight|nine|ten|double)\+? *(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)", text, re.IGNORECASE)
     if (numRooms):
         if (numRooms.group(1) is not None):
             return convert_words_to_integer(numRooms.group(1).strip())

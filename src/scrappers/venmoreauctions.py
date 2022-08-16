@@ -64,7 +64,7 @@ def parse_property(auction_url, auction_image,address , auction_price,is_sold):
             "number_of_bedrooms": no_of_beds,
             "auction_datetime": auction_date,
             "source": "venmoreauctions.co.uk",
-            "is_sold":is_sold,
+            # "is_sold":is_sold,
             "auction_venue":"Online Auction"
         }
         HouseAuction.sv_upd_result(data_hash)
@@ -82,7 +82,7 @@ def _run(url):
             try:
                 is_sold=False
                 if 'SOLD PRIOR' in auction.text_content():
-                    is_sold=True
+                    continue
                 auction_url = 'https://www.venmoreauctions.co.uk/'+auction.xpath(".//a")[0].attrib['href']
                 auction_image = auction.xpath(".//img")[0].attrib['src']
                 if 'http' not in auction_image:

@@ -23,10 +23,10 @@ class HouseAuction(TimeStampedModel):
     number_of_bedrooms = models.IntegerField(null=True, blank=True)
     property_type = models.TextField(null=True, blank=True)
     tenure = models.TextField(null=True, blank=True)
-    auction_datetime = models.DateTimeField(null=True, blank=True)
+    auction_datetime = models.DateTimeField()
     auction_venue = models.TextField(null=True, blank=True)
     source = models.TextField(null=True, blank=True)
-    is_sold = models.BooleanField(null=True, blank=True)
+    # is_sold = models.BooleanField(null=True, blank=True)
 
     @classmethod
     def sv_upd_result(cls, data: dict) -> "HouseAuction":
