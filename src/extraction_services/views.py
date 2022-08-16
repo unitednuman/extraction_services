@@ -1,23 +1,11 @@
-from django.shortcuts import render
-from datetime import datetime
-from django.http import HttpResponse
-from rest_framework import generics, status, pagination
+from rest_framework import generics, status
 from rest_framework import response
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-# from utils.permissions import IsAppAdmin, IsNonAdminUser
-from rest_framework import filters
-from django.db.models import Q
 from .models import HouseAuction, ErrorReport
 from .serializers import HouseAuctionSerializer, ErrorReportSerializer
-from django.db import connection
-from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
-import datetime
-from django.utils.timezone import now
-from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 
 
-# Create your views here.
 class HouseAuctionView(generics.GenericAPIView):
     queryset = HouseAuction.objects.all()
     serializer_class = HouseAuctionSerializer
@@ -30,6 +18,9 @@ class HouseAuctionView(generics.GenericAPIView):
         openapi.Parameter('auction_date_end', openapi.IN_QUERY,
                           description='End date YYYY-MM-DD',
                           type=openapi.TYPE_STRING, required=False, default=None, format=openapi.FORMAT_DATE),
+        openapi.Parameter('source', openapi.IN_QUERY,
+                          description='source',
+                          type=openapi.TYPE_STRING, required=False, default=None),
     ])
     def get(self, request, *args, **kwargs):
         filters = {}
@@ -37,6 +28,8 @@ class HouseAuctionView(generics.GenericAPIView):
             filters.update({"auction_datetime__date__gte": auction_date_start})
         if auction_date_end := request.GET.get('auction_date_end'):
             filters.update({"auction_datetime__date__lte": auction_date_end})
+        if source := request.GET.get('source'):
+            filters.update({"source": source})
 
         if filters:
             data = self.queryset.filter(**filters)
