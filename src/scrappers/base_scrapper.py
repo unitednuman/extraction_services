@@ -100,10 +100,10 @@ def parse_postal_code(text, fn_for_error_report):
         return None
 
 
-property_types_re = re.compile(r"\b" + r"\b|\b".join(map(lambda v: v.replace(' ', r'[\s -]+'), [
+property_types_re = re.compile(r"\b" + r"\b|\b".join(map(lambda v: v.replace(' ', r'[\s -]+'), ['commercial',
     'end of terrace house', 'land', 'terraced house', 'flat', 'semi detached house', 'shop',
     'cottage',
-    'detached house', 'apartment', 'detached bungalow', 'commercial', 'bungalow', 'studio', 'terraced',
+    'detached house', 'apartment', 'detached bungalow',  'bungalow', 'studio', 'terraced',
     'semi detached', 'detached', 'end terrace', 'mid terrace', 'bungalow', 'house semi detached',
     'house end of terrace'
 ])) + r"\b", flags=re.I)

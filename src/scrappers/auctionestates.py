@@ -77,22 +77,34 @@ def _run(url):
             try:
                 
                 is_sold=False
-                
+                if 'Sold' in auction.text_content().strip():
+                    continue
                 auction_url = 'https://www.auctionestates.co.uk'+auction.xpath(".//a")[0].attrib['href']
                 
                 auction_image = auction.xpath(".//img")[0].attrib['src'].strip()
                 if 'http' not in auction_image:
                     auction_image='https://www.auctionestates.co.uk'+auction_image
                 
+                
+                
+                
+                
+                
+                short_description=auction.xpath(".//ul[@class='property-details__points-list']")[0].text_content().strip()    
+                property_type=get_property_type(short_description)
+                
                 address = auction.xpath(".//div[@class='property-image__address']")[0].text_content().strip() 
                 address=" ".join(address.split())
-                
-                short_description=auction.xpath("//ul[@class='property-details__points-list']")[0].text_content().strip()    
-                property_type=get_property_type(short_description)
+                if property_type=="other" and "land" in address.lower():
+                    property_type="land"
+                if "land" in address.lower():
+                    address=re.search(r"(?<= to ).*|(?<= of ).*|(?<= at ).*",address, re.IGNORECASE)
+                    if address:
+                        address=address.group().strip()
                 tenure=get_tenure(short_description)
                 no_of_beds = get_bedroom(short_description)
                 
-                auction_price = auction.xpath("//div[@class='property-details__price']")[0].text_content().strip()
+                auction_price = auction.xpath(".//div[@class='property-details__price']")[0].text_content().strip()
                 parse_property(auction_url, auction_image,address , auction_price,is_sold,property_type,tenure,no_of_beds)
             except:
                 pass  
@@ -106,7 +118,8 @@ def _run(url):
                     break
                 except:pass
             k+=1
-        _run(next_page_url)
+        if next_page_url:
+            _run(next_page_url)
     except BaseException as be:
         save_error_report(be, __file__)  
         

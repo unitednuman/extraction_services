@@ -89,10 +89,10 @@ def _run(url):
                 except:
                     address = auction.xpath(".//h2[@class='woocommerce-loop-product__title']")[0].text_content().strip()
                 
-                auction_date=auction.xpath("//span[@class='ast-woo-product-category']")[0].text_content().strip()
+                auction_date=auction.xpath(".//span[@class='ast-woo-product-category']")[0].text_content().strip()
                 auction_date=parse_auction_date(auction_date)
                 
-                auction_price = auction.xpath("//span[@class='guideprice']")[0].text_content().strip()
+                auction_price = auction.xpath(".//span[@class='guideprice']")[0].text_content().strip()
                 parse_property(auction_url, auction_image,address , auction_price,is_sold,auction_date)
             except:
                 pass  
