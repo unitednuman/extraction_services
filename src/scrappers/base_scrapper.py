@@ -43,18 +43,26 @@ def get_text(nodes, index, xpath):
         logger.debug(f"could not find text with Xpath = {xpath}, with exception {e}")
         return None
 
+leashold_re = re.compile(r"\b" + r"\b|\b".join(
+    map(lambda v: v.replace(' ', r'[\s -]+'),['currently let','leasehold','tenant-in-situ','tenanted','tenant','tenancy'])
+    ) + r"\b", flags=re.I)
+
+freehold_re = re.compile(r"\b" + r"\b|\b".join(
+    map(lambda v: v.replace(' ', r'[\s -]+'),['freehold','A vacant three bedroom end-terrace'])
+    ) + r"\b", flags=re.I)
+
 
 def get_tenure(tenure_str):
     if tenure_str is None:
-        return ""
+        return None
     tenure_str = tenure_str.lower()
-    if 'freehold' in tenure_str:
+    if freehold_re.search(tenure_str):
         return "Freehold"
-    elif 'leasehold' in tenure_str:
+    elif leashold_re.search(tenure_str):
         return 'Leasehold'
     
     else:
-        return ""
+        return None
 
 
 def get_attrib(node, xpath, index, attribute):
@@ -139,7 +147,6 @@ def convert_words_to_integer(word):
         except BaseException as de:
             de.args = de.args + be.args + (word,)
             save_error_report(de, __file__, secondary_error=True)
-
     return None
 
 
@@ -151,3 +158,17 @@ def get_bedroom(text):
         elif (numRooms.group(2) is not None):
             return int(numRooms.group(2))
     return None
+
+
+# def get_bedroom(text):
+#     no_of_beds=0
+#     pattern = re.compile(r'(1|2|3|4|5|6|7|8|9|10|one|two|three|four|five|six|seven|eight|nine|ten|double)\+? *(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)', re.IGNORECASE)
+#     for numRooms in pattern.finditer(text): 
+#         if (numRooms.group(1)):
+#             no_of_beds=no_of_beds+convert_words_to_integer(numRooms.group(1)) 
+#         elif (numRooms.group(2)):
+#             no_of_beds=no_of_beds+convert_words_to_integer(numRooms.group(2)) 
+#     if no_of_beds:
+#         return no_of_beds
+#     return None
+ 

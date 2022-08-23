@@ -34,6 +34,7 @@ def parse_properties(html_content):
                 detail = get_text(result, 0, "//span[@class='text-primary-de']")
                 property_type = get_property_type(detail)
                 address = get_text(result, 0, "//h1[@id='properties-inner-details-address-summary']")
+                address=address.rsplit(',', 1)[0]
                 end_time = get_attrib(result, "//span[@class='end_time_auto']", 0, "data-time-end")
                 if not end_time:
                     end_time = get_text(result, -1, "//span[@class='stat-value stat-value--large']")

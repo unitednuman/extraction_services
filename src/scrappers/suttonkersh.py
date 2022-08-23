@@ -81,7 +81,7 @@ def run():
             auction_price = auction.xpath(".//td")[3].text_content().strip()
             postal_code= auction.xpath(".//td")[2].text_content()
             mauction=result[i+1]
-            auction_url = 'https://www.suttonkersh.co.uk'+mauction.xpath(".//a")[0].attrib['href']
+            auction_url = 'https://www.suttonkersh.co.uk'+mauction.xpath(".//a")[0].attrib['href'].split('/?s=listview')[0]
             auction_image = 'https://www.suttonkersh.co.uk'+mauction.xpath(".//img[@class='lotImage']")[0].attrib['src']
             parse_property(auction_url, auction_image , auction_title, auction_price,postal_code)
             i+=1

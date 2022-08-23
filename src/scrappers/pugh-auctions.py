@@ -12,6 +12,18 @@ from scrappers.traceback import get_traceback, save_error_report
 from extraction_services.models import HouseAuction, ErrorReport
 import dateutil.parser as dparser
 
+property_map_local={
+    "Flat Apartment":"semi detached",
+    "Hotel Guesthouse":"Commercial", 
+    "Commercial Property":"Commercial", 
+    "Public Convenience":"Commercial"
+}
+
+# "Block%20of%20Apartments","Bungalow","Caravan%2FPark%20Home","Commercial%20Property",
+# "Detached","Farm%20House%2FBarn%20Conversion","Flat%2FApartment","Hotel%2FGuesthouse",
+# "Land","Other","Parking%2FGarages","Public%20Convenience","Retirement%20Property","Semi%20Detached",
+# "Terraced"
+
 def parse_property(auction_url, auction_image , auction_title, auction_price,property_type):
     try:
         response = requests.get(auction_url)
@@ -31,11 +43,32 @@ def parse_property(auction_url, auction_image , auction_title, auction_price,pro
         address = result.xpath("//address")[0].text_content()
         postal_code = parse_postal_code(address, __file__)
         description = result.xpath("//div[@id='property-details']")[0].text_content()
-        if 'tenanted' in description:
-            tenure="Leasehold"
+        floors =get_text(result, 0, "//div[@id='property-details']//table")
+        
+        tenure=get_tenure(description)
+        
+        if floors:
+            no_of_beds =get_bedroom(floors)
         else:
-            tenure=get_tenure(description)
-        no_of_beds =get_bedroom(description)
+            no_of_beds =get_bedroom(description)
+        
+        
+        property_type_temp=get_property_type(description)
+        if property_type_temp=="other":
+            property_type_temp=get_property_type(property_type)
+        if property_type_temp!="other":
+            property_type=property_type_temp
+        elif property_type in property_map_local:
+            property_type = property_map_local[property_type]
+        else:
+            property_type="other"
+        
+        
+        
+        
+        if property_type=="Land":
+            no_of_beds=None
+        
         if auction_date:
             data_hash = {
                 "price": guidePrice,
@@ -43,7 +76,7 @@ def parse_property(auction_url, auction_image , auction_title, auction_price,pro
                 "picture_link": auction_image,
                 "property_description": description,
                 "property_link": auction_url,
-                "property_type":property_type,
+                "property_type":property_type.lower(),
                 "tenure":tenure,
                 "address": address,
                 "postal_code": postal_code,
@@ -82,10 +115,10 @@ def _run(url,property_type):
         save_error_report(be, __file__)  
         
 def run():
-    property_types=["all","Block%20of%20Apartments","Bungalow","Caravan%2FPark%20Home","Commercial%20Property","Detached","Farm%20House%2FBarn%20Conversion","Flat%2FApartment","Hotel%2FGuesthouse","Land","Other","Parking%2FGarages","Public%20Convenience","Retirement%20Property","Semi%20Detached","Terraced"]
+    property_types=["Block%20of%20Apartments","Bungalow","Caravan%2FPark%20Home","Commercial%20Property","Detached","Farm%20House%2FBarn%20Conversion","Flat%2FApartment","Hotel%2FGuesthouse","Land","Other","Parking%2FGarages","Public%20Convenience","Retirement%20Property","Semi%20Detached","Terraced"]
     for property_type in property_types:
         url = f"https://www.pugh-auctions.com/property-search?filter-postcode-town=&filter-property-type={property_type}&filter-guide_price_from=&filter-guide_price_to=&filter-radius=5&filter-date_added=anytime&filters=1"
-        property_type=re.sub("[%20 %2]"," ",property_type)
+        property_type=re.sub(r"%2F|%20"," ",property_type)
         _run(url,property_type)
         
         
