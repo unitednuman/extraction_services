@@ -45,6 +45,8 @@ def parse_properties(html_content):
                 propertyDescription = result.xpath("//div[@class='inner-properties-content']")[0].text_content()
             else:
                 continue
+            
+            tenure,property_type,numberOfBedrooms=get_beds_type_tenure(tenure,property_type,numberOfBedrooms,propertyDescription)
             data_hash = {
                 "price": price,
                 "currency_type": currency_symbol,

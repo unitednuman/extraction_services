@@ -87,6 +87,8 @@ class AuctionHouse:
                 property_description = \
                     parsed_content.xpath("//div[@class='preline'] | //div[@class='col-md-14 col-sm-13']")[
                         0].text_content().strip()
+                property_type=None
+                tenure,property_type,bedrooms=get_beds_type_tenure(tenure,property_type,bedrooms,property_description)
                 postcode = parse_postal_code(full_address, __file__)
                 data_hash = {
                     # "_id": lot_id,
@@ -98,7 +100,7 @@ class AuctionHouse:
                     "address": full_address,
                     "postal_code": postcode,
                     "number_of_bedrooms": bedrooms,
-                    "property_type": None,
+                    "property_type": property_type,
                     "tenure": tenure,
                     "auction_datetime": auction_datetime,
                     "auction_venue": venue,

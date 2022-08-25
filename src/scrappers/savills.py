@@ -1,6 +1,6 @@
 import requests
 from scrappers.traceback import get_traceback, save_error_report
-from scrappers.base_scrapper import load_json, parse_postal_code
+from scrappers.base_scrapper import *
 from extraction_services.models import HouseAuction, ErrorReport
 
 catalogue_url = "https://auctions.savills.co.uk/index.php?option=com_calendar&format=json&task=upcoming.getAuctions"
@@ -18,12 +18,16 @@ def parse_property(auction_id, lot_id, auction_date, venue):
     description = json_data['lot']['description']
     pictureLink = url + json_data['lot']['images'][0]['large_image']
     price = json_data['lot']['low_estimate']
-    tenure = json_data['lot']['tenure']
+    tenure = get_tenure(json_data['lot']['tenure'])
     address = json_data['lot']['name']
     postal_code = parse_postal_code(address, __file__)
     auction_datetime = auction_date
     currency = 'GBP'
     propertyLink = url + json_data['lot']['link']
+    property_type=number_of_bedrooms=None
+    if not description:
+        description = json_data['lot']['key_features']
+    tenure,property_type,number_of_bedrooms=get_beds_type_tenure(tenure,property_type,number_of_bedrooms,description)
     data_hash = {
         "price": price,
         "currency_type": currency,
@@ -34,6 +38,8 @@ def parse_property(auction_id, lot_id, auction_date, venue):
         "postal_code": postal_code,
         "tenure": tenure,
         "auction_datetime": auction_datetime,
+        "property_type": property_type,
+        "number_of_bedrooms": number_of_bedrooms,
         "auction_venue": venue,
         "source": "auctions.savills.co.uk"
     }

@@ -16,22 +16,12 @@ def parse_property(url, venue, auction_datetime):
     imagelink = result.xpath("//div[@class='gallery-img']//img")[0].attrib['src']
     property_title = result.xpath("//h1[@class='single-property-title']")[0].text
     property_type = get_property_type(property_title)
+    description = result.xpath("//div[@class='tabs-container container']")[0].text_content()
+    no_of_beds=None
     if 'Bedroom' in property_title:
         no_of_beds = int(property_title.split('Bedroom')[0].strip())
-    else:
-        no_of_beds = None
-    # try:
-    #     no_of_beds = int(no_of_beds.strip())
-    # except Exception as e:
-    #     e.args = e.args + (f"{no_of_beds = }",)
-    #     save_error_report(e, __file__, secondary_error=True)
-    #     no_of_beds = None
-    description = result.xpath("//div[@class='tabs-container container']")[0].text_content()
-    if match := re.search(r"\n\s*Tenure[^\n]+", description, flags=re.I):
-        text = match.group()
-        tenure = get_tenure(text)
-    else:
-        tenure = None
+    tenure,property_type,no_of_beds=get_beds_type_tenure(tenure,property_type,no_of_beds,description)
+
     data_hash = {
         "price": price,
         "currency_type": currency_symbol,

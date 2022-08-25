@@ -1,6 +1,7 @@
 import inspect
 import os
 import re
+from datetime import datetime
 import dateparser
 from price_parser import Price
 import logging
@@ -92,13 +93,18 @@ def prepare_price(price):
     return price, currency
 
 
-def parse_auction_date(auction_date_str):
-    auction_date = dateparser.parse(auction_date_str)
+def parse_auction_date(auction_date_str, **kwargs):
+    auction_date = dateparser.parse(auction_date_str, **kwargs)
     if auction_date is not None:
         return auction_date
     raise Exception(f"Unable to parse date from \"{auction_date_str}\" string")
 
-
+def parse_uk_date(text):
+    match=re.search(r"(\d+)/(\d+)/(\d+)", text)
+    if not match:
+        raise Exception(f"Unable to parse date from \"{text}\" string")
+    dt = datetime(int(match.group(3)), int(match.group(2)), int(match.group(1)))
+    return dt
 def parse_postal_code(text, fn_for_error_report):
     try:
         return re.search(r"(\w+\s\w+)\s*$", text).group(1)
@@ -113,12 +119,12 @@ property_types_re = re.compile(r"\b" + r"\b|\b".join(map(lambda v: v.replace(' '
     'cottage',
     'detached house', 'apartment', 'detached bungalow',  'bungalow', 'studio', 'terraced',
     'semi detached', 'detached', 'end terrace', 'mid terrace', 'bungalow', 'house semi detached',
-    'house end of terrace'
+    'house end of terrace','end of terrace'
 ])) + r"\b", flags=re.I)
 property_types_map = {
     'house semi detached': 'semi detached house',
-    'house end of terrace': 'end of terrace house'
-
+    'house end of terrace': 'end of terrace house',
+    'end of terrace': 'end of terrace house'
 }
 
 
@@ -158,6 +164,29 @@ def get_bedroom(text):
         elif (numRooms.group(2) is not None):
             return int(numRooms.group(2))
     return None
+
+
+def get_beds_type_tenure(tenure,property_type,no_of_beds,description):
+    if tenure is None:
+        tenure= get_tenure(description)
+    if property_type:
+        property_type_temp=get_property_type(property_type)
+        if property_type_temp=="other":
+            property_type_temp=get_property_type(description)
+        if property_type_temp!="other":
+            property_type=property_type_temp
+    else:
+        property_type_temp=get_property_type(description)
+        if property_type_temp!="other":
+            property_type=property_type_temp
+        if property_type is None:
+            property_type="other"
+    if no_of_beds is None:
+        no_of_beds=get_bedroom(description)
+    return tenure,property_type,no_of_beds
+
+
+
 
 
 # def get_bedroom(text):

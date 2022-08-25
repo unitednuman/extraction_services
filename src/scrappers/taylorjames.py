@@ -14,6 +14,9 @@ def parse_property(property_url, auction_datetime, auction_venue, imagelink):
     address = result.xpath("//div[@class='col col-xs-12 col-sm-12 col-md-7 col-lg-7 col-xl-7']/h1")[0].text_content()
     postal_code = parse_postal_code(address, __file__)
     description = result.xpath("//div[@data-tab-content='tab_key_features']")[0].text_content()
+    property_type=tenure=None
+    tenure,property_type,no_of_beds=get_beds_type_tenure(tenure,property_type,no_of_beds,description)
+
     data_hash = {
         "price": guide_price,
         "currency_type": currency_symbol,
@@ -24,6 +27,8 @@ def parse_property(property_url, auction_datetime, auction_venue, imagelink):
         "postal_code": postal_code,
         "number_of_bedrooms": no_of_beds,
         "auction_datetime": auction_datetime,
+        "tenure": tenure,
+        "property_type": property_type,
         "auction_venue": auction_venue,
         "source": "taylorjamesauctions.co.uk"
     }

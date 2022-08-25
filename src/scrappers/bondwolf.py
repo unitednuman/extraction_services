@@ -33,6 +33,7 @@ def parse_property(page, url):
     else:
         property_type = None
         number_of_bedrooms = None
+    tenure,property_type,number_of_bedrooms=get_beds_type_tenure(tenure,property_type,number_of_bedrooms,description)
     imagelink = result.xpath("//div[@class='slick-list draggable']//img")[0].attrib['src']
     propertyLink = page.url
     venue = get_text(result, 0, "//div[@class='AuctionDetails-location']//p")

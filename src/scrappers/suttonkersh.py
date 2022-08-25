@@ -29,7 +29,8 @@ def parse_property(auction_url, auction_image , auction_title, auction_price,pos
         if no_of_beds is None:
             no_of_beds = get_bedroom(introduction)
         property_type=get_property_type(introduction)
-            
+        
+        
         if 'other'==property_type:
             property_type=get_property_type(auction_title)
             
