@@ -1,16 +1,8 @@
 import requests
 from lxml import html
-from price_parser import Price
-import re
-import dateparser
-from price_parser import Price
-import logging
-import json
-from json import JSONDecodeError
 from scrappers.base_scrapper import *
-from scrappers.traceback import get_traceback, save_error_report
-from extraction_services.models import HouseAuction, ErrorReport
-import dateutil.parser as dparser
+from scrappers.traceback import save_error_report
+from extraction_services.models import HouseAuction
 
 
 payload={}
