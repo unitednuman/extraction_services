@@ -12,7 +12,7 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-logging.basicConfig(format="%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s", level=logging.DEBUG)
+logging.basicConfig(format="%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s", level=logging.INFO)
 
 
 def disable_other_loggers():
@@ -30,6 +30,14 @@ class LoggerModel(models.Model):
     @classmethod
     def log(cls, level_name, message, **kwargs):
         level = logging._nameToLevel.get(level_name) # noqa
+        try:
+            filenames = ", ".join({os.path.basename(s.filename) for s in inspect.stack() if r"scrappers" in s.filename})
+        except Exception as e:
+            LoggerModel.debug(f"error while fetching filenames: {e}", filenames="")
+            filenames = ""
+        if filenames not in kwargs:
+            kwargs['filenames'] = filenames
+        message = f"{filenames}: {message}"
         if level >= logging.root.level:
             logging.log(level, message)
             Thread(target=lambda: cls.objects.create(
@@ -89,12 +97,7 @@ class HouseAuction(TimeStampedModel):
 
     @classmethod
     def _sv_upd_result(cls, data: dict, results: list = None) -> "HouseAuction":
-        try:
-            filenames = ", ".join({os.path.basename(s.filename) for s in inspect.stack() if r"scrappers" in s.filename})
-        except Exception as e:
-            LoggerModel.debug(f"error while fetching filenames: {e}")
-            filenames = ""
-        LoggerModel.info(f"{filenames}: Saving HouseAuction")
+        LoggerModel.debug(f"Saving HouseAuction")
         data['property_link'] = data['property_link'].strip()
         if house_auction := HouseAuction.objects.filter(property_link=data['property_link']).first():
             house_auction.__dict__.update(data)

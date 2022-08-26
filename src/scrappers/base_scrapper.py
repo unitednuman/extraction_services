@@ -73,8 +73,10 @@ def currency_iso_name(currency):
     }
     try:
         return symbols[currency]
-    except:
-        raise Exception(f"Currency symbol \"{currency}\" not matching with available ones.")
+    except Exception as e:
+        e.args += (currency,)
+        save_error_report(e)
+        return None
 
 
 def prepare_price(price):
