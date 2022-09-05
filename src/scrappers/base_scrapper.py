@@ -139,7 +139,8 @@ property_types_re = re.compile(
 property_types_map = {
     'house semi detached': 'semi detached house',
     'house end of terrace': 'end of terrace house',
-    'end of terrace': 'end of terrace house'
+    'end of terrace': 'end of terrace house',
+    'terraced':'end terrace'
 }
 
 
@@ -172,9 +173,7 @@ def convert_words_to_integer(word):
 
 
 def get_bedroom(text):
-    numRooms = re.search(
-        r"(one|two|three|four|five|six|seven|eight|nine|ten|double)\+? *(?:double +)?-?bed(?:room)?s?|bed("
-        r"?:room)?s?:? *(\d+\+?)",
+    numRooms = re.search(r"(1|2|3|4|5|6|7|8|9|10|one|two|three|four|five|six|seven|eight|nine|ten|double)\+? *(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)",
         text, re.IGNORECASE)
     if (numRooms):
         if numRooms.group(1) is not None:

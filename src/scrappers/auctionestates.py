@@ -36,22 +36,23 @@ def parse_property(auction_url, auction_image,address , auction_price,is_sold,pr
         description = result.xpath("//div[@id='content1']")[0].text_content().strip()
         auction_date=result.xpath("//h3[@class='auction-date']")[0].text_content()
         auction_date=parse_auction_date(auction_date)
-        data_hash = {
-            "price": guidePrice,
-            "currency_type": currency,
-            "picture_link": auction_image,
-            "property_description": description,
-            "property_link": auction_url,
-            "property_type":property_type,
-            "tenure":tenure,
-            "address": address,
-            "postal_code": postal_code,
-            "number_of_bedrooms": no_of_beds,
-            "auction_datetime": auction_date,
-            "source": "auctionestates.co.uk",
-            # "is_sold":is_sold
-        }
-        HouseAuction.sv_upd_result(data_hash)
+        if guidePrice and address:
+            data_hash = {
+                "price": guidePrice,
+                "currency_type": currency,
+                "picture_link": auction_image,
+                "property_description": description,
+                "property_link": auction_url,
+                "property_type":property_type,
+                "tenure":tenure,
+                "address": address,
+                "postal_code": postal_code,
+                "number_of_bedrooms": no_of_beds,
+                "auction_datetime": auction_date,
+                "source": "auctionestates.co.uk",
+                # "is_sold":is_sold
+            }
+            HouseAuction.sv_upd_result(data_hash)
     except BaseException as be:
         save_error_report(be, __file__)
 

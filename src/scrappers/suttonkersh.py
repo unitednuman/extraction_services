@@ -36,6 +36,7 @@ def parse_property(auction_url, auction_image , auction_title, auction_price,pos
             
         if 'other'==property_type:
             property_type=get_property_type(description)
+
         auction_date=None
         try:
             auction_date= result.xpath("//span[contains(text(),'Auction: ')]")[0].text_content().replace('Auction: ','').strip()
