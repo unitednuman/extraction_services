@@ -15,7 +15,7 @@ import dateutil.parser as dparser
 
 def parse_property(auction_url, auction_image, property_type, auction_price):
     try:
-        response = requests.get(auction_url)
+        response = requests.get(auction_url, timeout=10)
         result = html.fromstring(response.content)
         fix_br_tag_issue(result)
         auction_title = result.xpath("//h1[@class='section__title h2']")[0].text_content()
@@ -35,7 +35,7 @@ def parse_property(auction_url, auction_image, property_type, auction_price):
         tenure = get_tenure(description)
         no_of_beds = None
         try:
-            response = requests.get(auction_url + "?layout=printdetails")
+            response = requests.get(auction_url + "?layout=printdetails", timeout=10)
             result = html.fromstring(response.content)
             fix_br_tag_issue(result)
             no_of_beds = result.xpath(".//ul[@class='rooms']")[0].text_content()
@@ -72,7 +72,7 @@ def run():
         if page > 1:
             pageno = f"/page-{page}"
         url = f"https://www.buttersjohnbee.com/auction-properties/properties-for-sale-in-staffordshire-and-cheshire{pageno}"
-        response = requests.request("GET", url)
+        response = requests.request("GET", url, timeout=10)
         results = html.fromstring(response.content)
         fix_br_tag_issue(results)
         try:

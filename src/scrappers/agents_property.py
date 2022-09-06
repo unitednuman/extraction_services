@@ -6,7 +6,7 @@ from extraction_services.models import HouseAuction, ErrorReport
 
 
 def parse_property(url, venue, auction_datetime):
-    response = requests.get(url)
+    response = requests.get(url, timeout=10)
     result = html.fromstring(response.content)
     fix_br_tag_issue(result)
     address = result.xpath("//div[@class='single-property-galleries row u-bg-white col-wrapper flex-wrapper']//p")[
@@ -42,7 +42,7 @@ def parse_property(url, venue, auction_datetime):
 
 def run():
     url = "https://www.agentspropertyauction.com/next-auction/"
-    response = requests.request("GET", url)
+    response = requests.request("GET", url, timeout=10)
     result = html.fromstring(response.content)
     fix_br_tag_issue(result)
     venue = result.xpath("//h1[@class='hero-subtitle']")[0].text

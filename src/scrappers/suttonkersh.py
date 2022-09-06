@@ -15,7 +15,7 @@ from datetime import datetime
 
 def parse_property(auction_url, auction_image , auction_title, auction_price,postal_code):
     try:
-        response = requests.get(auction_url)
+        response = requests.get(auction_url, timeout=10)
         result = html.fromstring(response.content)
         fix_br_tag_issue(result)
         guidePrice, currency = prepare_price(auction_price)
@@ -69,7 +69,7 @@ def parse_property(auction_url, auction_image , auction_title, auction_price,pos
 
 def run():
     url = "https://www.suttonkersh.co.uk/properties/listview/?auctionLocation=&availableOnly=on&FormSearchTextField=&geolat=&geolon=&georad=&section=auction&searchAuction=Search&auctionPeriod=128&lotNumber=&auctionType=all"
-    response = requests.request("GET", url)
+    response = requests.request("GET", url, timeout=10)
     results = html.fromstring(response.content)
     fix_br_tag_issue(results)
     try:

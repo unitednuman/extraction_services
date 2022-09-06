@@ -14,7 +14,7 @@ import dateutil.parser as dparser
 
 def parse_property(auction_url, auction_image , auction_title, auction_price,auction_date):
     try:
-        response = requests.get(auction_url)
+        response = requests.get(auction_url, timeout=10)
         result = html.fromstring(response.content)
         fix_br_tag_issue(result)
         guidePrice, currency = prepare_price(auction_price)
@@ -75,7 +75,7 @@ payload, headers = helpers()
 
 def run():
     url = "https://www.cliveemson.co.uk/properties/"
-    response = requests.request("POST", url, headers=headers, data=payload)
+    response = requests.request("POST", url, headers=headers, data=payload, timeout=10)
     results = html.fromstring(response.content)
     fix_br_tag_issue(results)
     try:

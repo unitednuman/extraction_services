@@ -24,7 +24,7 @@ class AllSop:
             'x-powered-by': 'React 15.7.0',
         }
 
-        res = requests.get(url, headers=headers)
+        res = requests.get(url, headers=headers, timeout=10)
         return res
 
     def currency_iso_name(self, currency_symbol):

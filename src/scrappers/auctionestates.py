@@ -28,7 +28,7 @@ headers = {
 
 def parse_property(auction_url, auction_image,address , auction_price,is_sold,property_type,tenure,no_of_beds):
     try:
-        response = requests.request("GET", auction_url, headers=headers, data=payload)
+        response = requests.request("GET", auction_url, headers=headers, data=payload, timeout=10)
         result = html.fromstring(response.content)
         fix_br_tag_issue(result)
         guidePrice, currency = prepare_price(auction_price)
@@ -60,7 +60,7 @@ def parse_property(auction_url, auction_image,address , auction_price,is_sold,pr
 
 
 def _run(url):        
-    response = requests.request("GET", url, headers=headers, data=payload)
+    response = requests.request("GET", url, headers=headers, data=payload, timeout=10)
     results = html.fromstring(response.content)
     fix_br_tag_issue(results)
     try:

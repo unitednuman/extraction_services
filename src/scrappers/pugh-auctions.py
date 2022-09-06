@@ -26,7 +26,7 @@ property_map_local={
 
 def parse_property(auction_url, auction_image , auction_title, auction_price,property_type):
     try:
-        response = requests.get(auction_url)
+        response = requests.get(auction_url, timeout=10)
         result = html.fromstring(response.content)
         fix_br_tag_issue(result)
         auction_date=None
@@ -90,7 +90,7 @@ def parse_property(auction_url, auction_image , auction_title, auction_price,pro
         save_error_report(be, __file__)
 
 def _run(url,property_type):        
-    response = requests.request("GET", url)
+    response = requests.request("GET", url, timeout=10)
     results = html.fromstring(response.content)
     fix_br_tag_issue(results)
     try:

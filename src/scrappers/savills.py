@@ -13,7 +13,7 @@ def parse_property(auction_id, lot_id, auction_date, venue):
     processlot_payload = {'auction_id': auction_id,
                           'lot_id': lot_id}
     url = "https://auctions.savills.co.uk/"
-    response = requests.post(proccess_lot_url, data=processlot_payload)
+    response = requests.post(proccess_lot_url, data=processlot_payload, timeout=10)
     json_data = load_json(response.content)
     description = json_data['lot']['description']
     pictureLink = url + json_data['lot']['images'][0]['large_image']
@@ -57,7 +57,7 @@ def parse_lot(auction_id, auction_date, venue):
                     'search': '',
                     'property_type': '',
                     'sort_by': ''}
-    response = requests.post(lot_url, data=lots_payload)
+    response = requests.post(lot_url, data=lots_payload, timeout=10)
     offset = 0
     json_data = load_json(response.content)
     total_pages = int(int(json_data['total_lots']) / 100)
@@ -76,7 +76,7 @@ def parse_lot(auction_id, auction_date, venue):
 
 
 def run():
-    response = requests.request("POST", catalogue_url, data=payload)
+    response = requests.request("POST", catalogue_url, data=payload, timeout=10)
     data = load_json(response.content)
     count = 0
     for auction in data['auctions']:

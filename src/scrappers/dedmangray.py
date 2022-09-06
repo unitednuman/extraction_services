@@ -34,7 +34,7 @@ headers = {
 
 def parse_property(auction_url, auction_image,address , auction_price,no_of_beds,property_type,is_sold):
     try:
-        response = requests.request("GET", auction_url, headers=headers, data=payload)
+        response = requests.request("GET", auction_url, headers=headers, data=payload, timeout=10)
         result = html.fromstring(response.content)
         fix_br_tag_issue(result)
         auction_date=None
@@ -68,7 +68,7 @@ def parse_property(auction_url, auction_image,address , auction_price,no_of_beds
 
 
 def _run(url,property_type):        
-    response = requests.request("GET", url, headers=headers, data=payload)
+    response = requests.request("GET", url, headers=headers, data=payload, timeout=10)
     results = html.fromstring(response.content)
     fix_br_tag_issue(results)
     try:

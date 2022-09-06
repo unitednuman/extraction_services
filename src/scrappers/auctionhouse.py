@@ -22,7 +22,7 @@ class AuctionHouse:
             'Upgrade-Insecure-Requests': '1',
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36',
         }
-        res = requests.get(url, headers=headers, data={})
+        res = requests.get(url, headers=headers, data={}, timeout=10)
         # print(f"------ Request Response : {res.status_code} --------")
         return res
 

@@ -28,7 +28,7 @@ def parse_properties(html_content):
             detailed_page_url = get_attrib(property, ".//a", 0, 'href')
             if detailed_page_url:
                 propertyLink = "https://www.iamsold.co.uk" + detailed_page_url
-                response = requests.get(propertyLink)
+                response = requests.get(propertyLink, timeout=10)
                 result = html.fromstring(response.content)
                 fix_br_tag_issue(result)
                 detail = get_text(result, 0, "//span[@class='text-primary-de']")
@@ -89,7 +89,7 @@ def run():
                'bidPrice': 'Bid Price',
                'context': 'generic',
                'pageNumber': '1'}
-    response = requests.request("POST", url, data=payload)
+    response = requests.request("POST", url, data=payload, timeout=10)
     results = json.loads(response.content)
     content = html.fromstring(results['properties'])
     fix_br_tag_issue(content)
@@ -97,7 +97,7 @@ def run():
     total_pages = int(int(results['totalProperties']) / 12)
     for page in range(2, total_pages + 1):
         payload['pageNumber'] = str(page)
-        response = requests.request("POST", url, data=payload)
+        response = requests.request("POST", url, data=payload, timeout=10)
         results = json.loads(response.content)
         content = html.fromstring(results['properties'])
         fix_br_tag_issue(content)

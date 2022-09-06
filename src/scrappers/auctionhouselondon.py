@@ -13,7 +13,7 @@ class AuctionHouseLondon:
 
     def connect_to(self, url, headers=None, payload=None):
         # print(url)
-        res = requests.get(url, headers=headers, data=payload)
+        res = requests.get(url, headers=headers, data=payload, timeout=10)
         # print(f"------ Request Response : {res.status_code} --------")
         return res
 

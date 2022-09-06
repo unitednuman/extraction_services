@@ -72,7 +72,7 @@ def parse_properties(results):
         currency = prepare_price(price)[1]
         auction_date = get_text(property, 0, "//b[contains(text(), 'Auction date:')]//parent::li")
         auction_date = parse_auction_date(auction_date)
-        response = requests.get(propertyLink)
+        response = requests.get(propertyLink, timeout=10)
         result = html.fromstring(response.content)
         fix_br_tag_issue(result)
         propertyDescription = get_text(result, 0,
@@ -106,7 +106,7 @@ def parse_auctions(results):
             url = "https://www.sdlauctions.co.uk/wp-content/themes/sdl-auctions/library/property-functions.php"
             payload = {'func': 'ajaxProp',
                        'data': f'location=&minBeds=&maxBeds=&minPrice=&maxPrice=&lat=&lng=&bounds=&tempType=auction&search=1&radius=3&auctionId={auction_id}&include%5B%5D=&limit=All&page=1&order=Lot Number&oos=0'}
-            response = requests.post(url, data=payload)
+            response = requests.post(url, data=payload, timeout=10)
             results = html.fromstring(response.content)
             fix_br_tag_issue(results)
             parse_properties(results)
@@ -115,7 +115,7 @@ def parse_auctions(results):
 
 
 def run():
-    response = requests.get("https://www.sdlauctions.co.uk/property-auctions/auction-events/")
+    response = requests.get("https://www.sdlauctions.co.uk/property-auctions/auction-events/", timeout=10)
     results = html.fromstring(response.content)
     fix_br_tag_issue(results)
     parse_auctions(results)

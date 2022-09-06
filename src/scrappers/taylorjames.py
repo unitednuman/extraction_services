@@ -5,7 +5,7 @@ from extraction_services.models import HouseAuction, ErrorReport
 
 
 def parse_property(property_url, auction_datetime, auction_venue, imagelink):
-    response = requests.get(property_url)
+    response = requests.get(property_url, timeout=10)
     result = html.fromstring(response.content)
     fix_br_tag_issue(result)
     no_of_beds = get_text(result, 0, "//span[@class='property-detail-icon property-detail-icon-beds']/span")
@@ -36,7 +36,7 @@ def parse_property(property_url, auction_datetime, auction_venue, imagelink):
 
 
 def parse_auction(auction_url, auction_venue):
-    response = requests.get(auction_url)
+    response = requests.get(auction_url, timeout=10)
     result = html.fromstring(response.content)
     fix_br_tag_issue(result)
     auction_datetime = parse_auction_date(
@@ -53,7 +53,7 @@ def parse_auction(auction_url, auction_venue):
 
 def run():
     url = "https://www.taylorjamesauctions.co.uk/property-auctions/"
-    response = requests.request("GET", url)
+    response = requests.request("GET", url, timeout=10)
     result = html.fromstring(response.content)
     fix_br_tag_issue(result)
     count = 0
