@@ -62,7 +62,7 @@ class LoggerModel(models.Model):
 
     @classmethod
     def delete_previous_logs(cls):
-        dt = timezone.now() - timedelta(days=30)
+        dt = timezone.now() - timedelta(days=10)
         del_count = cls.objects.filter(created__lte=dt).delete()
         cls.info(f"deleted {del_count} logs, those were created__lte={dt}.", logs_del_count=del_count)
 

@@ -31,7 +31,7 @@ def _save_error_report(exception, filename=None, **kwargs):
     except Exception as e:
         LoggerModel.debug(f"error while fetching filenames: {e}", filenames="")
         filenames = ""
-    LoggerModel.error(f"Got error {exception}, {kwargs}")
+    # LoggerModel.error(f"Got error {exception}, {kwargs}")
     if error_report := ErrorReport.objects.filter(trace_back=_traceback, error=exception).first():
         error_report.count = error_report.count + 1
         error_report.__dict__.update(kwargs)
