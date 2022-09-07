@@ -112,35 +112,39 @@ def parse_postal_code(text, fn_for_error_report):
 
 
 property_types_re = re.compile(
-    r"\b" + r"\b|\b".join(
+    r"" + r"|".join(
         map(lambda v: v.replace(' ', r'[\s -]+'),
             ['commercial',
              'end of terrace house',
-             'land',
-             'terraced house',
-             'flat',
-             'semi detached house',
-             'shop',
-             'cottage',
-             'detached house',
-             'apartment',
-             'detached bungalow',
-             'bungalow', 'studio',
-             'terraced',
-             'semi detached',
-             'detached',
+             'house end of terrace',
+             'end of terrace',
              'end terrace',
              'mid terrace',
-             'bungalow',
+             'terraced house',
+             'terraced',
+
+             'land',
+             'flat',
+
              'house semi detached',
-             'house end of terrace',
-             'end of terrace'
-             ])) + r"\b", flags=re.I)
+             'semi detached house',
+             'semi detached',
+             'detached house',
+             'detached bungalow',
+             'detached',
+
+             'shop',
+             'cottage',
+             'apartment',
+
+             'bungalow',
+             'studio',
+
+             ])) + r"", flags=re.I)
 property_types_map = {
     'house semi detached': 'semi detached house',
     'house end of terrace': 'end of terrace house',
     'end of terrace': 'end of terrace house',
-    'terraced':'end terrace'
 }
 
 
@@ -173,7 +177,8 @@ def convert_words_to_integer(word):
 
 
 def get_bedroom(text):
-    numRooms = re.search(r"(1|2|3|4|5|6|7|8|9|10|one|two|three|four|five|six|seven|eight|nine|ten|double)\+? *(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)",
+    numRooms = re.search(
+        r"(1|2|3|4|5|6|7|8|9|10|one|two|three|four|five|six|seven|eight|nine|ten|double)\+? *(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)",
         text, re.IGNORECASE)
     if (numRooms):
         if numRooms.group(1) is not None:
