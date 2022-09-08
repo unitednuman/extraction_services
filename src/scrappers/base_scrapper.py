@@ -120,6 +120,7 @@ property_types_re = re.compile(
              'end of terrace',
              'end terrace',
              'mid terrace',
+             'middle terrace',
              'terraced house',
              r'\bterraced?',
 
@@ -145,6 +146,8 @@ property_types_map = {
     'house semi detached': 'semi detached house',
     'house end of terrace': 'end of terrace house',
     'end of terrace': 'end of terrace house',
+    'middle terrace':'mid terrace',
+    'terraced':'terrace',
 }
 
 
