@@ -15,7 +15,8 @@ def parse_property(auction_id, lot_id, auction_date, venue):
     url = "https://auctions.savills.co.uk/"
     response = requests.post(proccess_lot_url, data=processlot_payload, timeout=10)
     json_data = load_json(response.content)
-    description = json_data['lot']['description']
+    description = json_data['lot']['description'] + "\n" + json_data['lot']['key_features'] + "\n" + json_data['lot'][
+        'accommodation']
     pictureLink = url + json_data['lot']['images'][0]['large_image']
     price = json_data['lot']['low_estimate']
     tenure = get_tenure(json_data['lot']['tenure'])
@@ -24,10 +25,11 @@ def parse_property(auction_id, lot_id, auction_date, venue):
     auction_datetime = auction_date
     currency = 'GBP'
     propertyLink = url + json_data['lot']['link']
-    property_type=number_of_bedrooms=None
-    if not description:
-        description = json_data['lot']['key_features']
-    tenure,property_type,number_of_bedrooms=get_beds_type_tenure(tenure,property_type,number_of_bedrooms,description)
+    property_type = number_of_bedrooms = None
+
+    tenure, property_type, number_of_bedrooms = get_beds_type_tenure(tenure, property_type, number_of_bedrooms,
+                                                                     description)
+
     data_hash = {
         "price": price,
         "currency_type": currency,

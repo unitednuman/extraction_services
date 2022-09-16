@@ -1,6 +1,6 @@
 import requests
 from django.utils.text import slugify
-
+from scrappers.base_scrapper import *
 from scrappers.traceback import get_traceback, save_error_report
 from extraction_services.models import HouseAuction, ErrorReport
 import dateparser
@@ -62,17 +62,20 @@ class AllSop:
                 # url_suffix = "-".join(url_suffix.strip().split()).strip().lower()
                 slug = slugify(url_suffix)
                 property_url = f"https://auctions.allsop.co.uk/lot-overview/{slug}/{reference_no}"
+                property_type = get_property_type(details['version']['tenancy_type'])
+                if property_type == "other":
+                    property_type = get_property_type(features)
                 data_hash = {
-                    #"_id": details["version"]["allsop_auctionid"],
+                    # "_id": details["version"]["allsop_auctionid"],
                     "price": price,
-                    "currency_type":currency,
+                    "currency_type": currency,
                     "picture_link": image_url,
                     "property_description": features,
                     "property_link": property_url,
                     "address": details["version"]['allsop_property']['allsop_name'],
                     "postal_code": details["version"]['allsop_property']['allsop_postcode'],
                     "number_of_bedrooms": details["version"]['allsop_property']['allsop_bedrooms'],
-                    "property_type": details['version']['tenancy_type'],
+                    "property_type": property_type,
                     "tenure": details['version']['allsop_propertytenure'],
                     "auction_datetime": auction_date,
                     "auction_venue": details['version']['allsop_auction']['allsop_venue'],
@@ -86,7 +89,6 @@ class AllSop:
         response = self.connect_to(self.URL)
         self.parser(response.json())
 
+
 def run():
     AllSop().scraper()
-
-
