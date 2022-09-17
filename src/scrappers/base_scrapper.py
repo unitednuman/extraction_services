@@ -114,6 +114,11 @@ property_types_re = re.compile(
     r"|".join(
         map(lambda v: v.replace(' ', r'[\s -]+'),
             ['commercial',
+             'retail',
+             'industrial',
+             'office',
+             'medical',
+
              'end of terrace house',
              'house end of terrace',
              'end of terrace',
@@ -139,14 +144,19 @@ property_types_re = re.compile(
 
              'bungalow',
              'studio',
+             'house',
 
              ])), flags=re.I)
 property_types_map = {
     'house semi detached': 'semi detached house',
     'house end of terrace': 'end of terrace house',
     'end of terrace': 'end of terrace house',
-    'middle terrace':'mid terrace',
-    'terraced':'terrace',
+    'middle terrace': 'mid terrace',
+    'terraced': 'terrace',
+    'retail': 'commercial',
+    'industrial': 'commercial',
+    'office': 'commercial',
+    'medical': 'commercial'
 }
 
 
