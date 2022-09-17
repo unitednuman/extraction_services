@@ -2,6 +2,7 @@ from extraction_services.models import LoggerModel
 from scrappers.traceback import save_error_report
 import os
 import importlib
+
 # logging.basicConfig(level=logging.DEBUG)
 
 
@@ -19,7 +20,7 @@ def run():
         # logging.info("Running :", name)
         try:
             module = importlib.import_module(f"scrappers.{name[:-3]}")
-            if hasattr(module, 'run'):
+            if hasattr(module, "run"):
                 LoggerModel.info(f"Running: {name}")
                 module.run()
         except BaseException as be:

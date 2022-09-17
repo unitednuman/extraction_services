@@ -25,7 +25,7 @@ from drf_yasg import openapi
 schema_view = get_schema_view(
     openapi.Info(
         title="My API",
-        default_version='v%s' % settings.API_VERSIONS[-1],
+        default_version="v%s" % settings.API_VERSIONS[-1],
         description="Test description",
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(email="contact@snippets.local"),
@@ -42,22 +42,28 @@ def get_versioned_urls():
     if settings.DEBUG:
         selected_versions = selected_versions[-1:]
     for version in selected_versions:
-        urls.extend([
-
-            path('api/v%s/extraction_services/' % version, include(('extraction_services.urls', 'extraction_services'),
-                                                            namespace='v%s-extraction_services' % version)),
-        ])
+        urls.extend(
+            [
+                path(
+                    "api/v%s/extraction_services/" % version,
+                    include(
+                        ("extraction_services.urls", "extraction_services"),
+                        namespace="v%s-extraction_services" % version,
+                    ),
+                ),
+            ]
+        )
     return urls
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('error/', include('error_report.urls')),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path("admin/", admin.site.urls),
+    path("error/", include("error_report.urls")),
+    path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     *get_versioned_urls(),
-    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    re_path(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    re_path(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    re_path(r"^swagger(?P<format>\.json|\.yaml)$", schema_view.without_ui(cache_timeout=0), name="schema-json"),
+    re_path(r"^swagger/$", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
+    re_path(r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

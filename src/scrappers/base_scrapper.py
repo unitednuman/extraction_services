@@ -35,14 +35,24 @@ def get_text(nodes, index, xpath):
         return None
 
 
-leashold_re = re.compile(r"\b" + r"\b|\b".join(
-    map(lambda v: v.replace(' ', r'[\s -]+'),
-        ['currently let', 'leasehold', 'tenant-in-situ', 'tenanted', 'tenant', 'tenancy'])
-) + r"\b", flags=re.I)
+leashold_re = re.compile(
+    r"\b"
+    + r"\b|\b".join(
+        map(
+            lambda v: v.replace(" ", r"[\s -]+"),
+            ["currently let", "leasehold", "tenant-in-situ", "tenanted", "tenant", "tenancy"],
+        )
+    )
+    + r"\b",
+    flags=re.I,
+)
 
-freehold_re = re.compile(r"\b" + r"\b|\b".join(
-    map(lambda v: v.replace(' ', r'[\s -]+'), ['freehold', 'A vacant three bedroom end-terrace'])
-) + r"\b", flags=re.I)
+freehold_re = re.compile(
+    r"\b"
+    + r"\b|\b".join(map(lambda v: v.replace(" ", r"[\s -]+"), ["freehold", "A vacant three bedroom end-terrace"]))
+    + r"\b",
+    flags=re.I,
+)
 
 
 def get_tenure(tenure_str):
@@ -52,7 +62,7 @@ def get_tenure(tenure_str):
     if freehold_re.search(tenure_str):
         return "Freehold"
     elif leashold_re.search(tenure_str):
-        return 'Leasehold'
+        return "Leasehold"
     else:
         return None
 
@@ -62,7 +72,7 @@ def get_attrib(node, xpath, index, attribute):
         return node.xpath(xpath)[index].attrib[attribute]
     except Exception as e:
         LoggerModel.debug(f"could not find Attribute with Xpath = {xpath}, with exception {e}")
-        return ''
+        return ""
 
 
 def currency_iso_name(currency):
@@ -90,13 +100,13 @@ def parse_auction_date(auction_date_str, **kwargs):
     auction_date = dateparser.parse(auction_date_str, **kwargs)
     if auction_date is not None:
         return auction_date
-    raise Exception(f"Unable to parse date from \"{auction_date_str}\" string")
+    raise Exception(f'Unable to parse date from "{auction_date_str}" string')
 
 
 def parse_uk_date(text):
     match = re.search(r"(\d+)/(\d+)/(\d+)", text)
     if not match:
-        raise Exception(f"Unable to parse date from \"{text}\" string")
+        raise Exception(f'Unable to parse date from "{text}" string')
     dt = datetime(int(match.group(3)), int(match.group(2)), int(match.group(1)))
     return dt
 
@@ -112,57 +122,57 @@ def parse_postal_code(text, fn_for_error_report):
 
 property_types_re = re.compile(
     r"|".join(
-        map(lambda v: v.replace(' ', r'[\s -]+'),
-            ['commercial',
-             'retail',
-             'industrial',
-             'office',
-             'medical',
-
-             'end of terrace house',
-             'house end of terrace',
-             'end of terrace',
-             'end terrace',
-             'mid terrace',
-             'middle terrace',
-             'terraced house',
-             r'\bterraced?',
-
-             'land',
-             r'\bflat\b',
-
-             'house semi detached',
-             'semi detached house',
-             'semi detached',
-             'detached house',
-             'detached bungalow',
-             'detached',
-
-             r'\bshop\b',
-             'cottage',
-             'apartment',
-
-             'bungalow',
-             'studio',
-             'house',
-
-             ])), flags=re.I)
+        map(
+            lambda v: v.replace(" ", r"[\s -]+"),
+            [
+                "commercial",
+                "retail",
+                "industrial",
+                "office",
+                "medical",
+                "end of terrace house",
+                "house end of terrace",
+                "end of terrace",
+                "end terrace",
+                "mid terrace",
+                "middle terrace",
+                "terraced house",
+                r"\bterraced?",
+                "land",
+                r"\bflat\b",
+                "house semi detached",
+                "semi detached house",
+                "semi detached",
+                "detached house",
+                "detached bungalow",
+                "detached",
+                r"\bshop\b",
+                "cottage",
+                "apartment",
+                "bungalow",
+                "studio",
+                "house",
+            ],
+        )
+    ),
+    flags=re.I,
+)
 property_types_map = {
-    'house semi detached': 'semi detached house',
-    'house end of terrace': 'end of terrace house',
-    'end of terrace': 'end of terrace house',
-    'middle terrace': 'mid terrace',
-    'terraced': 'terrace',
-    'retail': 'commercial',
-    'industrial': 'commercial',
-    'office': 'commercial',
-    'medical': 'commercial'
+    "house semi detached": "semi detached house",
+    "house end of terrace": "end of terrace house",
+    "end of terrace": "end of terrace house",
+    "middle terrace": "mid terrace",
+    "terraced": "terrace",
+    "retail": "commercial",
+    "industrial": "commercial",
+    "office": "commercial",
+    "medical": "commercial",
 }
 
 
 def get_property_type(text):
     if match := property_types_re.search(text):
-        property_type = match.group().replace('-', ' ').lower()
+        property_type = match.group().replace("-", " ").lower()
         if property_type in property_types_map:
             property_type = property_types_map[property_type]
         return property_type
@@ -175,8 +185,19 @@ def fix_br_tag_issue(doc):
 
 
 def convert_words_to_integer(word):
-    numbers = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7,
-               "eight": 8, "nine": 9, "ten": 10, "double": 2}
+    numbers = {
+        "one": 1,
+        "two": 2,
+        "three": 3,
+        "four": 4,
+        "five": 5,
+        "six": 6,
+        "seven": 7,
+        "eight": 8,
+        "nine": 9,
+        "ten": 10,
+        "double": 2,
+    }
     try:
         return numbers[word.strip().lower()]
     except BaseException as be:
@@ -191,8 +212,10 @@ def convert_words_to_integer(word):
 def get_bedroom(text):
     numRooms = re.search(
         r"(1|2|3|4|5|6|7|8|9|10|one|two|three|four|five|six|seven|eight|nine|ten|double)\+? *(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)",
-        text, re.IGNORECASE)
-    if (numRooms):
+        text,
+        re.IGNORECASE,
+    )
+    if numRooms:
         if numRooms.group(1) is not None:
             return convert_words_to_integer(numRooms.group(1).strip())
         elif numRooms.group(2) is not None:
@@ -219,15 +242,16 @@ def get_beds_type_tenure(tenure, property_type, no_of_beds, description):
         no_of_beds = get_bedroom(description)
     return tenure, property_type, no_of_beds
 
+
 # def get_bedroom(text):
 #     no_of_beds=0
 #     pattern = re.compile(r'(1|2|3|4|5|6|7|8|9|10|one|two|three|four|five|six|seven|eight|nine|ten|double)\+?
 #     *(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)', re.IGNORECASE)
-#     for numRooms in pattern.finditer(text): 
+#     for numRooms in pattern.finditer(text):
 #         if (numRooms.group(1)):
-#             no_of_beds=no_of_beds+convert_words_to_integer(numRooms.group(1)) 
+#             no_of_beds=no_of_beds+convert_words_to_integer(numRooms.group(1))
 #         elif (numRooms.group(2)):
-#             no_of_beds=no_of_beds+convert_words_to_integer(numRooms.group(2)) 
+#             no_of_beds=no_of_beds+convert_words_to_integer(numRooms.group(2))
 #     if no_of_beds:
 #         return no_of_beds
 #     return None

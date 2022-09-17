@@ -8,7 +8,7 @@ from .models import HouseAuction, ErrorReport
 class HouseAuctionSerializer(serializers.ModelSerializer):
     class Meta:
         model = HouseAuction
-        fields = '__all__'
+        fields = "__all__"
         # fields = 'id', 'nick_name', 'points', 'level', 'nfc_token', 'update', 'points_per_minute'
 
     # def create(self, validated_data):
@@ -32,6 +32,4 @@ class HouseAuctionSerializer(serializers.ModelSerializer):
 class ErrorReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = ErrorReport
-        fields = '__all__'
-
-
+        fields = "__all__"

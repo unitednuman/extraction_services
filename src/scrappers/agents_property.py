@@ -10,17 +10,18 @@ def parse_property(url, venue, auction_datetime):
     result = html.fromstring(response.content)
     fix_br_tag_issue(result)
     address = result.xpath("//div[@class='single-property-galleries row u-bg-white col-wrapper flex-wrapper']//p")[
-        0].text
+        0
+    ].text
     postal_code = parse_postal_code(address, __file__)
     price, currency_symbol = prepare_price(result.xpath("//p[@class='single-property-price']")[0].text)
-    imagelink = result.xpath("//div[@class='gallery-img']//img")[0].attrib['src']
+    imagelink = result.xpath("//div[@class='gallery-img']//img")[0].attrib["src"]
     property_title = result.xpath("//h1[@class='single-property-title']")[0].text
     property_type = get_property_type(property_title)
     description = result.xpath("//div[@class='tabs-container container']")[0].text_content()
-    no_of_beds=None
-    if 'Bedroom' in property_title:
-        no_of_beds = int(property_title.split('Bedroom')[0].strip())
-    tenure,property_type,no_of_beds=get_beds_type_tenure(tenure,property_type,no_of_beds,description)
+    no_of_beds = None
+    if "Bedroom" in property_title:
+        no_of_beds = int(property_title.split("Bedroom")[0].strip())
+    tenure, property_type, no_of_beds = get_beds_type_tenure(tenure, property_type, no_of_beds, description)
 
     data_hash = {
         "price": price,
@@ -35,7 +36,7 @@ def parse_property(url, venue, auction_datetime):
         "auction_venue": venue,
         "tenure": tenure,
         "property_type": property_type,
-        "source": "agentspropertyauction.com"
+        "source": "agentspropertyauction.com",
     }
     HouseAuction.sv_upd_result(data_hash)
 
@@ -46,9 +47,11 @@ def run():
     result = html.fromstring(response.content)
     fix_br_tag_issue(result)
     venue = result.xpath("//h1[@class='hero-subtitle']")[0].text
-    auction_datetime = result.xpath("//p[@class='hero-title']")[0].text + " " + \
-                                          result.xpath("//p[@class='hero-subtitle']")[
-                                              0].text.split('-')[0]
+    auction_datetime = (
+        result.xpath("//p[@class='hero-title']")[0].text
+        + " "
+        + result.xpath("//p[@class='hero-subtitle']")[0].text.split("-")[0]
+    )
     auction_datetime = parse_auction_date(auction_datetime)
     for property in result.xpath("//a[@class='u-link-cover']"):
         try:

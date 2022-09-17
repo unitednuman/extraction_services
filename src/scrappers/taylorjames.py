@@ -14,8 +14,8 @@ def parse_property(property_url, auction_datetime, auction_venue, imagelink):
     address = result.xpath("//div[@class='col col-xs-12 col-sm-12 col-md-7 col-lg-7 col-xl-7']/h1")[0].text_content()
     postal_code = parse_postal_code(address, __file__)
     description = result.xpath("//div[@data-tab-content='tab_key_features']")[0].text_content()
-    property_type=tenure=None
-    tenure,property_type,no_of_beds=get_beds_type_tenure(tenure,property_type,no_of_beds,description)
+    property_type = tenure = None
+    tenure, property_type, no_of_beds = get_beds_type_tenure(tenure, property_type, no_of_beds, description)
 
     data_hash = {
         "price": guide_price,
@@ -30,7 +30,7 @@ def parse_property(property_url, auction_datetime, auction_venue, imagelink):
         "tenure": tenure,
         "property_type": property_type,
         "auction_venue": auction_venue,
-        "source": "taylorjamesauctions.co.uk"
+        "source": "taylorjamesauctions.co.uk",
     }
     HouseAuction.sv_upd_result(data_hash)
 
@@ -40,12 +40,16 @@ def parse_auction(auction_url, auction_venue):
     result = html.fromstring(response.content)
     fix_br_tag_issue(result)
     auction_datetime = parse_auction_date(
-        result.xpath("//h1//parent::div")[0].text_content().replace("Auction", "").replace("Bidding opens at",
-                                                                                           "").strip())
+        result.xpath("//h1//parent::div")[0]
+        .text_content()
+        .replace("Auction", "")
+        .replace("Bidding opens at", "")
+        .strip()
+    )
     for property in result.xpath("//a[@class='property-link plus-hover']"):
         try:
             property_url = property.xpath(".")[0].attrib["href"]
-            imagelink = property.xpath(".//img[contains(@alt,'property')]")[0].attrib['src']
+            imagelink = property.xpath(".//img[contains(@alt,'property')]")[0].attrib["src"]
             parse_property(property_url, auction_datetime, auction_venue, imagelink)
         except BaseException as be:
             save_error_report(be, __file__)
@@ -61,6 +65,6 @@ def run():
         if count >= 2:
             break
         auction_venue = auction.xpath(".//p[contains(text(), 'Venue')]")[0].text_content()
-        auction_url = auction.xpath(".//div[@class='past-only']/a")[0].attrib['href']
+        auction_url = auction.xpath(".//div[@class='past-only']/a")[0].attrib["href"]
         parse_auction(auction_url, auction_venue)
         count += 1

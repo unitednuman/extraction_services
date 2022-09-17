@@ -18,7 +18,7 @@ def get_text(node, index, xpath, raise_error=True):
     except Exception as e:
         if not raise_error:
             print("attribute finding error", e, xpath)
-            return ''
+            return ""
         return ValueError(f"Unable to get text for {xpath}", e)
 
 
@@ -27,7 +27,7 @@ def get_attrib(node, xpath, index, attribute):
         return node.xpath(xpath)[index].attrib[attribute]
     except Exception as e:
         print("attribute finding error", e, attribute)
-        return ''
+        return ""
 
 
 def currency_iso_name(currency):
@@ -51,8 +51,7 @@ def prepare_price(price):
 
 def parse_auction_date(auction_date):
     try:
-        auction_date = auction_date.strip().split('\t')[
-            -1].strip()
+        auction_date = auction_date.strip().split("\t")[-1].strip()
         auction_date = dateparser.parse(auction_date)
         return auction_date
     except Exception as e:
@@ -75,8 +74,9 @@ def parse_properties(results):
         response = requests.get(propertyLink, timeout=10)
         result = html.fromstring(response.content)
         fix_br_tag_issue(result)
-        propertyDescription = get_text(result, 0,
-                                       "//div[contains(text(),'Property Description:')]//following-sibling::p")
+        propertyDescription = get_text(
+            result, 0, "//div[contains(text(),'Property Description:')]//following-sibling::p"
+        )
         tenure_str = get_text(result, 0, "//div[contains(text(),'Tenure: ')]//following-sibling::p")
         tenure = get_tenure(tenure_str)
         pictureLink = get_attrib(result, "//a[@data-lightbox='property-image']//img", 1, "src")
@@ -93,7 +93,7 @@ def parse_properties(results):
             "auction_datetime": auction_date,
             "tenure": tenure,
             "property_type": property_type,
-            "source": "sdlauctions.co.uk"
+            "source": "sdlauctions.co.uk",
         }
         # print(data_hash)
         HouseAuction.sv_upd_result(data_hash)
@@ -102,10 +102,12 @@ def parse_properties(results):
 def parse_auctions(results):
     for auction in results.xpath("//div[@class='events-list']//div[@class='btn-flex-holder']"):
         try:
-            auction_id = int(auction.xpath("a")[0].attrib['href'].split('/')[2])
+            auction_id = int(auction.xpath("a")[0].attrib["href"].split("/")[2])
             url = "https://www.sdlauctions.co.uk/wp-content/themes/sdl-auctions/library/property-functions.php"
-            payload = {'func': 'ajaxProp',
-                       'data': f'location=&minBeds=&maxBeds=&minPrice=&maxPrice=&lat=&lng=&bounds=&tempType=auction&search=1&radius=3&auctionId={auction_id}&include%5B%5D=&limit=All&page=1&order=Lot Number&oos=0'}
+            payload = {
+                "func": "ajaxProp",
+                "data": f"location=&minBeds=&maxBeds=&minPrice=&maxPrice=&lat=&lng=&bounds=&tempType=auction&search=1&radius=3&auctionId={auction_id}&include%5B%5D=&limit=All&page=1&order=Lot Number&oos=0",
+            }
             response = requests.post(url, data=payload, timeout=10)
             results = html.fromstring(response.content)
             fix_br_tag_issue(results)

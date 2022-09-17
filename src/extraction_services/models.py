@@ -31,21 +31,27 @@ class LoggerModel(models.Model):
 
     @classmethod
     def log(cls, level_name, message, no_delete=False, **kwargs):
-        level = logging._nameToLevel.get(level_name) # noqa
+        level = logging._nameToLevel.get(level_name)  # noqa
         try:
             filenames = ", ".join({os.path.basename(s.filename) for s in inspect.stack() if r"scrappers" in s.filename})
         except Exception as e:
             LoggerModel.debug(f"error while fetching filenames: {e}", filenames="")
             filenames = ""
         if filenames not in kwargs:
-            kwargs['filenames'] = filenames
+            kwargs["filenames"] = filenames
         message = f"{filenames}: {message}"
         logging.log(level, message)
         if level >= cls.db_log_level:
-            Thread(target=lambda: cls.objects.create(
-                level_name=level_name, message=message, no_delete=no_delete,
-                created=timezone.now(), additional_info=kwargs),
-                   daemon=True).start()
+            Thread(
+                target=lambda: cls.objects.create(
+                    level_name=level_name,
+                    message=message,
+                    no_delete=no_delete,
+                    created=timezone.now(),
+                    additional_info=kwargs,
+                ),
+                daemon=True,
+            ).start()
 
     @classmethod
     def info(cls, message, no_delete=False, **kwargs):
@@ -101,8 +107,8 @@ class HouseAuction(TimeStampedModel):
     @classmethod
     def _sv_upd_result(cls, data: dict, results: list = None) -> "HouseAuction":
         LoggerModel.debug(f"Saving HouseAuction")
-        data['property_link'] = data['property_link'].strip()
-        if house_auction := HouseAuction.objects.filter(property_link=data['property_link']).first():
+        data["property_link"] = data["property_link"].strip()
+        if house_auction := HouseAuction.objects.filter(property_link=data["property_link"]).first():
             house_auction.__dict__.update(data)
         else:
             house_auction = HouseAuction(**data)

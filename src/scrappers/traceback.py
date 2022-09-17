@@ -18,7 +18,15 @@ def save_error_report(exception, filename=None, **kwargs):
     try:
         _save_error_report(exception, filename, **kwargs)
     except SynchronousOnlyOperation:
-        t = Thread(target=_save_error_report, daemon=True, args=(exception, filename,), kwargs=kwargs)
+        t = Thread(
+            target=_save_error_report,
+            daemon=True,
+            args=(
+                exception,
+                filename,
+            ),
+            kwargs=kwargs,
+        )
         t.start()
         t.join()
 

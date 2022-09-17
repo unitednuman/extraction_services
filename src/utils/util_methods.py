@@ -4,12 +4,11 @@ from django.core import signing
 
 
 class UtilMethods:
-
     @staticmethod
     def get_api_details():
         detail = {
-            'service': request.version.split('-')[1],
-            'version': int(request.version.split('-')[0].replace('v', ''))
+            "service": request.version.split("-")[1],
+            "version": int(request.version.split("-")[0].replace("v", "")),
         }
         return detail
 

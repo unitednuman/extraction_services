@@ -10,25 +10,38 @@ class HouseAuctionView(generics.GenericAPIView):
     queryset = HouseAuction.objects.all()
     serializer_class = HouseAuctionSerializer
 
-    @swagger_auto_schema(manual_parameters=[
-
-        openapi.Parameter('auction_date_start', openapi.IN_QUERY,
-                          description='Start date YYYY-MM-DD',
-                          type=openapi.TYPE_STRING, required=False, default=None, format=openapi.FORMAT_DATE),
-        openapi.Parameter('auction_date_end', openapi.IN_QUERY,
-                          description='End date YYYY-MM-DD',
-                          type=openapi.TYPE_STRING, required=False, default=None, format=openapi.FORMAT_DATE),
-        openapi.Parameter('source', openapi.IN_QUERY,
-                          description='source',
-                          type=openapi.TYPE_STRING, required=False, default=None),
-    ])
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "auction_date_start",
+                openapi.IN_QUERY,
+                description="Start date YYYY-MM-DD",
+                type=openapi.TYPE_STRING,
+                required=False,
+                default=None,
+                format=openapi.FORMAT_DATE,
+            ),
+            openapi.Parameter(
+                "auction_date_end",
+                openapi.IN_QUERY,
+                description="End date YYYY-MM-DD",
+                type=openapi.TYPE_STRING,
+                required=False,
+                default=None,
+                format=openapi.FORMAT_DATE,
+            ),
+            openapi.Parameter(
+                "source", openapi.IN_QUERY, description="source", type=openapi.TYPE_STRING, required=False, default=None
+            ),
+        ]
+    )
     def get(self, request, *args, **kwargs):
         filters = {}
-        if auction_date_start := request.GET.get('auction_date_start'):
+        if auction_date_start := request.GET.get("auction_date_start"):
             filters.update({"auction_datetime__date__gte": auction_date_start})
-        if auction_date_end := request.GET.get('auction_date_end'):
+        if auction_date_end := request.GET.get("auction_date_end"):
             filters.update({"auction_datetime__date__lte": auction_date_end})
-        if source := request.GET.get('source'):
+        if source := request.GET.get("source"):
             filters.update({"source": source})
 
         if filters:
@@ -52,8 +65,8 @@ class HouseAuctionViewDetails(generics.GenericAPIView):
     serializer_class = HouseAuctionSerializer
 
     def get(self, *args, **kwargs):
-        if kwargs.get('pk'):
-            toy_data = self.queryset.filter(pk=kwargs.get('pk'))
+        if kwargs.get("pk"):
+            toy_data = self.queryset.filter(pk=kwargs.get("pk"))
             paginated_response = self.paginate_queryset(toy_data)
             serialized = self.get_serializer(paginated_response, many=True)
             return self.get_paginated_response(serialized.data)
@@ -61,21 +74,18 @@ class HouseAuctionViewDetails(generics.GenericAPIView):
 
     def patch(self, request, *args, **kwargs):
         if kwargs.get("pk"):
-            toy_data = self.queryset.get(pk=kwargs.get('pk'))
+            toy_data = self.queryset.get(pk=kwargs.get("pk"))
             serialized = self.get_serializer(toy_data, data=request.data, partial=True)
             if serialized.is_valid():
                 serialized.save()
-                data = {
-                    'status': status.HTTP_200_OK,
-                    'message': "Update Successful"
-                }
+                data = {"status": status.HTTP_200_OK, "message": "Update Successful"}
                 return response.Response(data)
             return response.Response(serialized.errors)
         return response.Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def delete(self, request, *args, **kwargs):
-        if kwargs.get('pk'):
-            toy_data = self.queryset.get(pk=kwargs.get('pk'))
+        if kwargs.get("pk"):
+            toy_data = self.queryset.get(pk=kwargs.get("pk"))
             toy_data.delete()
             return response.Response(status=status.HTTP_204_NO_CONTENT)
         return response.Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)

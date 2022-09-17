@@ -6,13 +6,13 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('extraction_services', '0005_loggermodel'),
+        ("extraction_services", "0005_loggermodel"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='loggermodel',
-            old_name='level',
-            new_name='level_name',
+            model_name="loggermodel",
+            old_name="level",
+            new_name="level_name",
         ),
     ]

@@ -6,7 +6,7 @@ class IsAppAdmin(BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_anonymous:
 
-            return request.session.get('role', UserTypes.USER) == UserTypes.ADMIN
+            return request.session.get("role", UserTypes.USER) == UserTypes.ADMIN
         else:
             return False
 
@@ -14,6 +14,6 @@ class IsAppAdmin(BasePermission):
 class IsNonAdminUser(BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_anonymous:
-            return request.session.get('role', UserTypes.USER) == UserTypes.USER
+            return request.session.get("role", UserTypes.USER) == UserTypes.USER
         else:
             return False

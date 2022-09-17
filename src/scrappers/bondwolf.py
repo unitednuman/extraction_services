@@ -14,18 +14,21 @@ def parse_property(page, url):
     result = html.fromstring(response)
     fix_br_tag_issue(result)
     auction_time = parse_auction_date(
-        result.xpath("//div[@class='AuctionDetails-datetime']//h2")[0].text_content().strip())
+        result.xpath("//div[@class='AuctionDetails-datetime']//h2")[0].text_content().strip()
+    )
     description = result.xpath("//h4[contains(text(), 'Property Description')]//parent::div")[0].text_content().strip()
 
     tenure_str = get_text(result, 0, "//h4[contains(text(), 'Tenure')]//parent::div")
     tenure = get_tenure(tenure_str)
     price_text = result.xpath("//h2[@class='h1 mb-1 PropertyHeader-price-value']")[0].text_content().strip()
     price, currency = prepare_price(price_text)
-    address, *other_details = result.xpath("//div[@class='PropertyHeader-description pr-lg-5']")[0].text_content().strip().split('\n')
+    address, *other_details = (
+        result.xpath("//div[@class='PropertyHeader-description pr-lg-5']")[0].text_content().strip().split("\n")
+    )
     postal_code = parse_postal_code(address, __file__)
     if other_details:
         detail = other_details[0]
-        if 'bedroom' in detail and (match := re.search(r"(\d+)\sbedroom", detail, flags=re.I)):
+        if "bedroom" in detail and (match := re.search(r"(\d+)\sbedroom", detail, flags=re.I)):
             number_of_bedrooms = int(match.group(1))
         else:
             number_of_bedrooms = None
@@ -33,8 +36,10 @@ def parse_property(page, url):
     else:
         property_type = None
         number_of_bedrooms = None
-    tenure,property_type,number_of_bedrooms=get_beds_type_tenure(tenure,property_type,number_of_bedrooms,description)
-    imagelink = result.xpath("//div[@class='slick-list draggable']//img")[0].attrib['src']
+    tenure, property_type, number_of_bedrooms = get_beds_type_tenure(
+        tenure, property_type, number_of_bedrooms, description
+    )
+    imagelink = result.xpath("//div[@class='slick-list draggable']//img")[0].attrib["src"]
     propertyLink = page.url
     venue = get_text(result, 0, "//div[@class='AuctionDetails-location']//p")
     data_hash = {
@@ -71,7 +76,7 @@ def start():
             return
         for property in result.xpath("//a[@class='PropertyCard']"):
             try:
-                url = property.xpath('.')[0].attrib['href']
+                url = property.xpath(".")[0].attrib["href"]
                 parse_property(page, url)
             except BaseException as be:
                 save_error_report(be, __file__)

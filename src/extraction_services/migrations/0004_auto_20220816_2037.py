@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('extraction_services', '0003_houseauction_is_sold'),
+        ("extraction_services", "0003_houseauction_is_sold"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='houseauction',
-            name='is_sold',
+            model_name="houseauction",
+            name="is_sold",
         ),
         migrations.AlterField(
-            model_name='houseauction',
-            name='auction_datetime',
+            model_name="houseauction",
+            name="auction_datetime",
             field=models.DateTimeField(),
         ),
     ]

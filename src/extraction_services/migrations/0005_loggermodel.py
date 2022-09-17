@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('extraction_services', '0004_auto_20220816_2037'),
+        ("extraction_services", "0004_auto_20220816_2037"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='LoggerModel',
+            name="LoggerModel",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('level', models.CharField(max_length=20)),
-                ('message', models.TextField()),
-                ('created', models.DateTimeField()),
-                ('additional_info', models.JSONField()),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("level", models.CharField(max_length=20)),
+                ("message", models.TextField()),
+                ("created", models.DateTimeField()),
+                ("additional_info", models.JSONField()),
             ],
         ),
     ]

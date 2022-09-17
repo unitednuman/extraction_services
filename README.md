@@ -1,6 +1,6 @@
 # extraction_service
 
-This codebase is consists REST API to provide properties and background worker which scrape properties from auction sites 
+This codebase is consists REST API to provide properties and background worker which scrape properties from auction sites
 
 ## Deployment Steps
 These are simple steps will help you to deploy the project with docker
@@ -25,4 +25,3 @@ or if you don't want to run in background
 ```
 docker-compose up
 ```
-
