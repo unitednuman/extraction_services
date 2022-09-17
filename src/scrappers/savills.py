@@ -25,10 +25,15 @@ def parse_property(auction_id, lot_id, auction_date, venue):
     auction_datetime = auction_date
     currency = 'GBP'
     propertyLink = url + json_data['lot']['link']
-    property_type = number_of_bedrooms = None
-
-    tenure, property_type, number_of_bedrooms = get_beds_type_tenure(tenure, property_type, number_of_bedrooms,
-                                                                     description)
+    property_type = get_property_type(description)
+    number_of_bedrooms = json_data['lot']['bedrooms']
+    if number_of_bedrooms is None:
+        number_of_bedrooms = get_bedroom(description)
+    tenure = get_tenure(json_data['lot']['tenure'])
+    if tenure is None:
+        tenure = get_tenure(description)
+    # tenure, property_type, number_of_bedrooms = get_beds_type_tenure(tenure, property_type, number_of_bedrooms,
+    #                                                                  description)
 
     data_hash = {
         "price": price,

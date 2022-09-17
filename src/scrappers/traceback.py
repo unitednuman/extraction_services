@@ -29,7 +29,10 @@ def _save_error_report(exception, filename=None, **kwargs):
     try:
         filenames = ", ".join({os.path.basename(s.filename) for s in inspect.stack() if r"scrappers" in s.filename})
     except Exception as e:
-        LoggerModel.debug(f"error while fetching filenames: {e}", filenames="")
+        if kwargs.get("secondary_error"):
+            LoggerModel.debug(f"error while fetching filenames: {e}", filenames="")
+        else:
+            LoggerModel.info(f"error while fetching filenames: {e}", filenames="")
         filenames = ""
     # LoggerModel.error(f"Got error {exception}, {kwargs}")
     if error_report := ErrorReport.objects.filter(trace_back=_traceback, error=exception).first():

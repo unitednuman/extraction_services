@@ -54,6 +54,10 @@ class AllSop:
                 currency = self.currency_iso_name(price_obj.currency)
                 auction_date = dateparser.parse(details['version']['allsop_auction']['allsop_auctiondate'])
                 features = "\n".join([value['value'] for value in details["version"]['features']])
+                description = "\n".join([value['value'] for value in details["version"].get('description', [])])
+                description = description + "\n Features: \n" + features
+                if details['version'].get('accommodation_bullets'):
+                    LoggerModel.info(f"{details['version'].get('accommodation_bullets') = }", no_delete=True)
                 image_id = details["version"]['images'][0]['file_id']
                 image_url = f"https://ams-auctions-production-storage.s3.eu-west-2.amazonaws.com/image_cache/{image_id}---auto--.jpg"
                 url_suffix = details["version"]['allsop_propertybyline']
@@ -62,15 +66,16 @@ class AllSop:
                 # url_suffix = "-".join(url_suffix.strip().split()).strip().lower()
                 slug = slugify(url_suffix)
                 property_url = f"https://auctions.allsop.co.uk/lot-overview/{slug}/{reference_no}"
-                property_type = get_property_type(details['version']['tenancy_type'])
+                allsop_property_type = details['version']['allsop_propertytype'] or ''
+                property_type = get_property_type(allsop_property_type)
                 if property_type == "other":
-                    property_type = get_property_type(features)
+                    property_type = get_property_type(description)
                 data_hash = {
                     # "_id": details["version"]["allsop_auctionid"],
                     "price": price,
                     "currency_type": currency,
                     "picture_link": image_url,
-                    "property_description": features,
+                    "property_description": description,
                     "property_link": property_url,
                     "address": details["version"]['allsop_property']['allsop_name'],
                     "postal_code": details["version"]['allsop_property']['allsop_postcode'],

@@ -12,7 +12,7 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-logging.basicConfig(format="%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s :: %(name)s :: %(levelname)s :: %(message)s", level=logging.DEBUG)
 
 
 def disable_other_loggers():
@@ -22,13 +22,15 @@ def disable_other_loggers():
 
 
 class LoggerModel(models.Model):
+    db_log_level = logging.INFO
     level_name = models.CharField(max_length=20)
     message = models.TextField()
     created = models.DateTimeField()
     additional_info = models.JSONField()
+    no_delete = models.BooleanField(default=False)
 
     @classmethod
-    def log(cls, level_name, message, **kwargs):
+    def log(cls, level_name, message, no_delete=False, **kwargs):
         level = logging._nameToLevel.get(level_name) # noqa
         try:
             filenames = ", ".join({os.path.basename(s.filename) for s in inspect.stack() if r"scrappers" in s.filename})
@@ -38,15 +40,16 @@ class LoggerModel(models.Model):
         if filenames not in kwargs:
             kwargs['filenames'] = filenames
         message = f"{filenames}: {message}"
-        if level >= logging.root.level:
-            logging.log(level, message)
+        logging.log(level, message)
+        if level >= cls.db_log_level:
             Thread(target=lambda: cls.objects.create(
-                level_name=level_name, message=message, created=timezone.now(), additional_info=kwargs),
+                level_name=level_name, message=message, no_delete=no_delete,
+                created=timezone.now(), additional_info=kwargs),
                    daemon=True).start()
 
     @classmethod
-    def info(cls, message, **kwargs):
-        cls.log("INFO", message, **kwargs)
+    def info(cls, message, no_delete=False, **kwargs):
+        cls.log("INFO", message, no_delete=no_delete, **kwargs)
 
     @classmethod
     def debug(cls, message, **kwargs):
@@ -63,7 +66,7 @@ class LoggerModel(models.Model):
     @classmethod
     def delete_previous_logs(cls):
         dt = timezone.now() - timedelta(days=10)
-        del_count = cls.objects.filter(created__lte=dt).delete()
+        del_count = cls.objects.filter(no_delete=False, created__lte=dt).delete()
         cls.info(f"deleted {del_count} logs, those were created__lte={dt}.", logs_del_count=del_count)
 
 

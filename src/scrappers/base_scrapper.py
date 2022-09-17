@@ -53,7 +53,6 @@ def get_tenure(tenure_str):
         return "Freehold"
     elif leashold_re.search(tenure_str):
         return 'Leasehold'
-
     else:
         return None
 
