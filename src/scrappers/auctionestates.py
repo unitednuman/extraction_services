@@ -23,7 +23,7 @@ headers = {
 }
 
 
-def parse_property(auction_url, auction_image, address, auction_price, is_sold, property_type, tenure, no_of_beds):
+def parse_property(auction_url, auction_image, address, auction_price, is_sold, property_type, tenure, short_description):
     try:
         response = requests.request("GET", auction_url, headers=headers, data=payload, timeout=10)
         result = html.fromstring(response.content)
@@ -31,6 +31,19 @@ def parse_property(auction_url, auction_image, address, auction_price, is_sold, 
         guidePrice, currency = prepare_price(auction_price)
         postal_code = parse_postal_code(address, __file__)
         description = result.xpath("//div[@id='content1']")[0].text_content().strip()
+
+        if not tenure:
+            tenure = get_tenure(description)
+
+        try:
+            beds_div = get_text(result, 0, "//div[@class='stat-box__number']")
+            no_of_beds = get_bedroom(beds_div)
+        except Exception:
+            no_of_beds = None
+        if no_of_beds is None:
+            no_of_beds = get_bedroom(short_description)
+        if no_of_beds is None:
+            no_of_beds = get_bedroom(description)
         auction_date = result.xpath("//h3[@class='auction-date']")[0].text_content()
         auction_date = parse_auction_date(auction_date)
         if guidePrice and address:
@@ -87,11 +100,10 @@ def _run(url):
                     if address:
                         address = address.group().strip()
                 tenure = get_tenure(short_description)
-                no_of_beds = get_bedroom(short_description)
 
                 auction_price = auction.xpath(".//div[@class='property-details__price']")[0].text_content().strip()
                 parse_property(
-                    auction_url, auction_image, address, auction_price, is_sold, property_type, tenure, no_of_beds
+                    auction_url, auction_image, address, auction_price, is_sold, property_type, tenure, short_description
                 )
             except:
                 pass

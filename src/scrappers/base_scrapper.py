@@ -211,7 +211,7 @@ def convert_words_to_integer(word):
 
 def get_bedroom(text):
     numRooms = re.search(
-        r"(1|2|3|4|5|6|7|8|9|10|one|two|three|four|five|six|seven|eight|nine|ten|double)\+? *(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)",
+        r"(1|2|3|4|5|6|7|8|9|10|one|two|three|four|five|six|seven|eight|nine|ten|double)\+?\s*(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)",
         text,
         re.IGNORECASE,
     )
