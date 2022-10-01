@@ -7,7 +7,8 @@ from extraction_services.models import HouseAuction
 
 payload = {}
 headers = {
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,"
+    "image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
     "Accept-Language": "en-US,en;q=0.9",
     "Cache-Control": "max-age=0",
     "Connection": "keep-alive",
@@ -16,14 +17,17 @@ headers = {
     "Sec-Fetch-Site": "same-origin",
     "Sec-Fetch-User": "?1",
     "Upgrade-Insecure-Requests": "1",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)"
+    " Chrome/104.0.0.0 Safari/537.36",
     "sec-ch-ua": '"Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"',
     "sec-ch-ua-mobile": "?0",
     "sec-ch-ua-platform": '"Windows"',
 }
 
 
-def parse_property(auction_url, auction_image, address, auction_price, is_sold, property_type, tenure, short_description):
+def parse_property(
+    auction_url, auction_image, address, auction_price, is_sold, property_type, tenure, short_description
+):
     try:
         response = requests.request("GET", auction_url, headers=headers, data=payload, timeout=10)
         result = html.fromstring(response.content)
@@ -34,7 +38,6 @@ def parse_property(auction_url, auction_image, address, auction_price, is_sold, 
 
         if not tenure:
             tenure = get_tenure(description)
-
         try:
             beds_div = get_text(result, 0, "//div[@class='stat-box__number']")
             no_of_beds = get_bedroom(beds_div)
@@ -103,7 +106,14 @@ def _run(url):
 
                 auction_price = auction.xpath(".//div[@class='property-details__price']")[0].text_content().strip()
                 parse_property(
-                    auction_url, auction_image, address, auction_price, is_sold, property_type, tenure, short_description
+                    auction_url,
+                    auction_image,
+                    address,
+                    auction_price,
+                    is_sold,
+                    property_type,
+                    tenure,
+                    short_description,
                 )
             except:
                 pass
@@ -127,5 +137,5 @@ def _run(url):
 
 
 def run():
-    url = f"https://www.auctionestates.co.uk/view-properties"
+    url = "https://www.auctionestates.co.uk/view-properties"
     _run(url)

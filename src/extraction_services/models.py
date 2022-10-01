@@ -31,14 +31,18 @@ class LoggerModel(models.Model):
 
     @classmethod
     def log(cls, level_name, message, no_delete=False, **kwargs):
-        level = logging._nameToLevel.get(level_name)  # noqa
-        try:
-            filenames = ", ".join({os.path.basename(s.filename) for s in inspect.stack() if r"scrappers" in s.filename})
-        except Exception as e:
-            LoggerModel.debug(f"error while fetching filenames: {e}", filenames="")
-            filenames = ""
-        if filenames not in kwargs:
+        level = logging._nameToLevel.get(level_name)  # noqa  # pylint: disable=protected-access
+        if kwargs.get("filenames") is None:
+            try:
+                filenames = ", ".join(
+                    {os.path.basename(s.filename) for s in inspect.stack() if r"scrappers" in s.filename}
+                )
+            except Exception as e:
+                LoggerModel.debug(f"error while fetching filenames: {e}", filenames="")
+                filenames = ""
             kwargs["filenames"] = filenames
+        else:
+            filenames = kwargs["filenames"]
         message = f"{filenames}: {message}"
         logging.log(level, message)
         if level >= cls.db_log_level:
@@ -99,14 +103,27 @@ class HouseAuction(TimeStampedModel):
             return cls._sv_upd_result(data)
         except SynchronousOnlyOperation:
             results = []
-            t = Thread(target=cls._sv_upd_result, daemon=True, args=(data, results))
+            t = Thread(
+                target=cls._sv_upd_result,
+                daemon=True,
+                args=(data, results),
+                kwargs=dict(
+                    async_error=True,
+                    filenames=", ".join(
+                        {os.path.basename(s.filename) for s in inspect.stack() if r"scrappers" in s.filename}
+                    ),
+                ),
+            )
             t.start()
             t.join()
             return results[0]
 
     @classmethod
-    def _sv_upd_result(cls, data: dict, results: list = None) -> "HouseAuction":
-        LoggerModel.debug(f"Saving HouseAuction")
+    def _sv_upd_result(cls, data: dict, results: list = None, async_error=False, filenames=None) -> "HouseAuction":
+        if async_error:
+            LoggerModel.debug("Retrying using thread", filenames=filenames)
+        else:
+            LoggerModel.debug("Saving HouseAuction")
         data["property_link"] = data["property_link"].strip()
         if house_auction := HouseAuction.objects.filter(property_link=data["property_link"]).first():
             house_auction.__dict__.update(data)

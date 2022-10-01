@@ -1,8 +1,7 @@
 import requests
 from lxml import html
 from scrappers.base_scrapper import *
-from scrappers.traceback import get_traceback
-from extraction_services.models import HouseAuction, ErrorReport
+from extraction_services.models import HouseAuction
 
 
 def parse_property(url, venue, auction_datetime):
@@ -16,12 +15,14 @@ def parse_property(url, venue, auction_datetime):
     price, currency_symbol = prepare_price(result.xpath("//p[@class='single-property-price']")[0].text)
     imagelink = result.xpath("//div[@class='gallery-img']//img")[0].attrib["src"]
     property_title = result.xpath("//h1[@class='single-property-title']")[0].text
-    property_type = get_property_type(property_title)
     description = result.xpath("//div[@class='tabs-container container']")[0].text_content()
-    no_of_beds = None
-    if "Bedroom" in property_title:
-        no_of_beds = int(property_title.split("Bedroom")[0].strip())
-    tenure, property_type, no_of_beds = get_beds_type_tenure(tenure, property_type, no_of_beds, description)
+    property_type = get_property_type(property_title)
+    if property_type == "other":
+        property_type = get_property_type(description)
+    no_of_beds = get_bedroom(property_title)
+    if no_of_beds is None:
+        no_of_beds = get_bedroom(description)
+    tenure = get_tenure(description)
 
     data_hash = {
         "price": price,

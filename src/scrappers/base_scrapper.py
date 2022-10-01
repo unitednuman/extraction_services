@@ -151,7 +151,7 @@ property_types_re = re.compile(
                 "apartment",
                 "bungalow",
                 "studio",
-                "house",
+                r"\bhouse",
             ],
         )
     ),

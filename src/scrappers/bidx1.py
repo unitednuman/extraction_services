@@ -1,37 +1,62 @@
+from datetime import timedelta
+
+import dateparser
 import requests
 from lxml import html
+from lxml.html import HtmlElement
+
 from scrappers.base_scrapper import *
 from extraction_services.models import HouseAuction
 
 
-def parse_property(url, imagelink, auction_datetime_new):
+def parse_property(url, imagelink):
     try:
         response = requests.get(url, timeout=10)
-        result = html.fromstring(response.content)
+        result: HtmlElement = html.fromstring(response.content)
         fix_br_tag_issue(result)
-        price = None
-        currency_symbol = None
+        auction_closing_els = result.xpath("//input[@id='_seconds-to-closing']")
+        if not auction_closing_els:
+            return
+        secs_to_auction_close = int(auction_closing_els[0].attrib["value"])
+        secs_to_auction_start = int(result.xpath("//input[@id='_seconds-to-auction-start']")[0].attrib["value"])
+        if secs_to_auction_close <= 0:
+            return
         try:
-            price, currency_symbol = prepare_price(
-                result.xpath("//p[contains(text(), '£')] | //p[contains(text(), 'price')]")[0].text.replace(
-                    "Invited Opening Bid", ""
-                )
+            close_datetime_el = result.xpath("//div[@class='auction-date-bar']")[0]
+        except IndexError:
+            save_error_report(
+                Exception(
+                    "Unable to get closing date",
+                    dict(secs_to_auction_close=secs_to_auction_close, secs_to_auction_start=secs_to_auction_start),
+                ),
+                secondary_error=True,
             )
-        except Exception as e:
-            save_error_report(e, __file__, secondary_error=True)
+            return
+        close_datetime_txt = (
+            close_datetime_el.text_content().replace("Auction Date", "").replace("Closing Time", "").strip()
+        )
+        close_datetime = dateparser.parse(close_datetime_txt)
+        diff = secs_to_auction_close - secs_to_auction_start
+        auction_datetime = close_datetime - timedelta(seconds=diff)
+        price, currency_symbol = prepare_price(
+            result.xpath("//div[contains(@class, 'price')]//p[.!='']")[0].text.replace("Invited Opening Bid", "")
+        )
+
         address = result.xpath("//h2[contains(@class,'m-0 order-1 order-lg-0')]")[0].text
         postal_code = parse_postal_code(address, __file__)
         description = result.xpath("//div[@id='property-page']")[0].text_content().strip().replace("\n", " ")
-        property_type = result.xpath("//div[contains(@class, 'property-type')]")[0].text.strip()
+        property_type = get_property_type(result.xpath("//div[contains(@class, 'property-type')]")[0].text.strip())
+        if property_type == "other":
+            property_type = get_property_type(description)
         tenure_str = get_text(
             result,
             0,
-            "//h3[contains(text(),'Tenure')]//parent::div//following-sibling::div//p | //h3[contains(text(),'Tenancy')]//parent::div//following-sibling::div//p",
+            "//h3[contains(text(),'Tenure')]//parent::div//following-sibling::div//p",
         )
         tenure = get_tenure(tenure_str)
-        no_of_beds = None
-        tenure, property_type, no_of_beds = get_beds_type_tenure(tenure, property_type, no_of_beds, description)
-
+        if tenure is None:
+            tenure = get_tenure(description)
+        no_of_beds = get_bedroom(description)
         data_hash = {
             "price": price,
             "currency_type": currency_symbol,
@@ -42,7 +67,7 @@ def parse_property(url, imagelink, auction_datetime_new):
             "postal_code": postal_code,
             "property_type": property_type,
             "tenure": tenure,
-            "auction_datetime": auction_datetime_new,
+            "auction_datetime": auction_datetime,
             "auction_venue": "",
             "source": "bidx1.com",
             "number_of_bedrooms": no_of_beds,
@@ -59,6 +84,7 @@ def run():
         while True:
             url = temp_url.format(page)
             base_url = "https://bidx1.com"
+            # base_url = "https://bidx1.com/en/united-kingdom?region=2&maxprice=&division="
             response = requests.request("GET", url, timeout=10)
             result = html.fromstring(response.content)
             fix_br_tag_issue(result)
@@ -66,24 +92,8 @@ def run():
                 try:
                     url = base_url + property.xpath(".//a")[0].attrib["href"]
 
-                    date_time_text = (
-                        property.xpath(
-                            ".//div[@class='sale-entity-status-label sale-entity-status-label--bidding-to-be-opened']"
-                        )[0]
-                        .text_content()
-                        .strip()
-                    )
-
-                    auction_datetime = parse_auction_date(date_time_text.split("(GMT+1) on ")[1])
-
-                    hour = int(re.search(r" at *(\d+\+?)", date_time_text, re.IGNORECASE).group(1).strip())
-
-                    auction_datetime_new = datetime(
-                        auction_datetime.year, auction_datetime.month, auction_datetime.day, hour=hour
-                    )
-
-                    imagelink = result.xpath("//div[@class='property-card__image-container']//img")[0].attrib["src"]
-                    parse_property(url, imagelink, auction_datetime_new)
+                    imagelink = result.xpath(".//div[@class='property-card__image-container']//img")[0].attrib["src"]
+                    parse_property(url, imagelink)
                 except BaseException as be:
                     save_error_report(be, __file__)
             try:

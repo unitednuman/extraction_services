@@ -13,7 +13,8 @@ class AuctionHouse:
 
     def connect_to(self, url):
         headers = {
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,"
+            "image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
             "Accept-Language": "en-US,en;q=0.9",
             "Cache-Control": "max-age=0",
             "Connection": "keep-alive",
@@ -58,6 +59,11 @@ class AuctionHouse:
                 # currency = self.currency_iso_name(
                 #     parse_price(parsed_content.xpath("//h4[@class='guideprice']//text()")[0]).currency)
                 full_address = parsed_content.xpath("//div[@id='lotnav']//p//text()")[0]
+                property_description = (
+                    parsed_content.xpath("//div[@class='preline'] | //div[@class='col-md-14 col-sm-13']")[0]
+                    .text_content()
+                    .strip()
+                )
                 url = res.url
                 lot_id = url.split("/")[-1]
                 thumbnail = (
@@ -71,7 +77,9 @@ class AuctionHouse:
                     for text in parsed_content.xpath("//div[@class='lot-info-right']//li//text()")
                     if "Bedroom" in text
                 ]
-                bedrooms = bedrooms_data[0].split()[0] if bedrooms_data else None
+                bedrooms = get_bedroom(bedrooms_data[0]) if bedrooms_data else None
+                if bedrooms is None:
+                    bedrooms = get_bedroom(property_description)
                 tenure_data = [
                     text
                     for text in parsed_content.xpath("//div[@class='lot-info-right']//li")
@@ -80,6 +88,8 @@ class AuctionHouse:
                 tenure = tenure_data[0].text_content().split(":")[-1].strip() if tenure_data else None
                 if tenure:
                     tenure = get_tenure(tenure)
+                if tenure is None:
+                    tenure = get_tenure(property_description)
                 venue_data = [
                     text
                     for text in parsed_content.xpath("//p[@class='auction-info-header']")
@@ -99,15 +109,11 @@ class AuctionHouse:
                         + " "
                         + parsed_content.xpath("//div[@class='auction-time']//p")[-1].text_content()
                     )
-                property_description = (
-                    parsed_content.xpath("//div[@class='preline'] | //div[@class='col-md-14 col-sm-13']")[0]
-                    .text_content()
-                    .strip()
-                )
-                property_type = None
-                tenure, property_type, bedrooms = get_beds_type_tenure(
-                    tenure, property_type, bedrooms, property_description
-                )
+
+                property_type = get_property_type(full_address)
+                if property_type == "other":
+                    property_type = get_property_type(property_description)
+
                 postcode = parse_postal_code(full_address, __file__)
                 data_hash = {
                     # "_id": lot_id,
