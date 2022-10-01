@@ -27,14 +27,3 @@ services:
     command: python manage.py qcluster
     volumes:
       - ../src:/app
-
-  db:
-    restart: always
-    container_name: live-services-db
-    image: postgres:latest
-    expose:
-      - "5433"
-    ports:
-      - "5433:5432"
-    env_file:
-      - .env
