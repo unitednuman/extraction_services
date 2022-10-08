@@ -47,6 +47,8 @@ def parse_property(
             no_of_beds = get_bedroom(short_description)
         if no_of_beds is None:
             no_of_beds = get_bedroom(description)
+        if no_of_beds is None:
+            no_of_beds = get_bedroom(get_text(result, 0, "//body"))
         auction_date = result.xpath("//h3[@class='auction-date']")[0].text_content()
         auction_date = parse_auction_date(auction_date)
         if guidePrice and address:
