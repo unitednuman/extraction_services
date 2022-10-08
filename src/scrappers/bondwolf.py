@@ -91,4 +91,5 @@ def run():
                 except BaseException as be:
                     save_error_report(be, __file__)
         finally:
+            page.close()
             browser.close()

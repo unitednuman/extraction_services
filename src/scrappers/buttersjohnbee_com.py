@@ -1,16 +1,8 @@
 import requests
 from lxml import html
-from price_parser import Price
-import re
-import dateparser
-from price_parser import Price
-import logging
-import json
-from json import JSONDecodeError
 from scrappers.base_scrapper import *
-from scrappers.traceback import get_traceback, save_error_report
-from extraction_services.models import HouseAuction, ErrorReport
-import dateutil.parser as dparser
+from scrappers.traceback import save_error_report
+from extraction_services.models import HouseAuction
 
 
 def parse_property(auction_url, auction_image, property_type, auction_price):
@@ -33,11 +25,27 @@ def parse_property(auction_url, auction_image, property_type, auction_price):
             .split(", ")[0]
             .strip()
         )
-        auction_date = parse_auction_date(auction_date)
+        try:
+            auction_date = parse_auction_date(auction_date)
+        except Exception:
+            auction_date_split = re.split(r"((?:\b|\d)(?:am|pm)) ", auction_date)
+            if len(auction_date_split) > 2:
+                auction_date = auction_date_split[0] + auction_date_split[1]
+                auction_date = parse_auction_date(auction_date)
+            else:
+                for word in re.split(r"\s", auction_date):
+                    if not re.search(
+                        r"Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)|\d+(?:st|nd|rd|th)\b|\d+(?::|\.)\d+\s*(?:am|pm)|\b\d+\b",
+                        word,
+                    ):
+                        auction_date = re.sub(rf"\s?\b{word}\b\s?", " ", auction_date)
+                auction_date = parse_auction_date(auction_date)
         if not property_type or property_type == "other":
             property_type = get_property_type(
-                get_text(result, 0, "//div[contains(@class, 'section__meta')]/p/text()[last()]") or ""
+                result.xpath("//div[contains(@class, 'section__meta')]/p/text()[last()]")[0].strip()
             )
+        if property_type == "other":
+            property_type = get_property_type(description)
         postal_code = parse_postal_code(auction_title, __file__)
         tenure = get_tenure(description)
         no_of_beds = None

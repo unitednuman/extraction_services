@@ -24,6 +24,8 @@ def parse_property(auction_url, auction_image, auction_title, auction_price, auc
         description = result.xpath("//section[@class='single-content single-lot-content']")[0].text_content()
         property_type_text = result.xpath("//section[@class='single-content single-lot-content']/p")[0].text_content()
         property_type = get_property_type(property_type_text)
+        if property_type == "other":
+            property_type = get_property_type(description)
         tenure_text = result.xpath("//section[@class='single-content single-lot-content']/h4[last()]")[0].text_content()
         tenure = get_tenure(tenure_text)
         no_of_beds = get_bedroom(auction_title) or get_bedroom(description)
@@ -84,7 +86,8 @@ def run():
     fix_br_tag_issue(results)
     try:
         for result in results.xpath("//div[@class='auction auction-listings']"):
-            auction_date = get_text(result, 0, "//div[@class='auction-info']")
+            # //div[contains(@class, 'tile-col lot-status--') and not(contains(@class, 'lot-status--sold'))]
+            auction_date = get_text(result, 0, ".//div[@class='auction-info']")
             # .split(': ')[1].replace(' Auction','').strip()
             auction_date = re.sub('["\r\t\n]', "", auction_date)
             auction_date = dparser.parse(auction_date, fuzzy=True)
