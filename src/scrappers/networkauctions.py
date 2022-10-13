@@ -15,24 +15,24 @@ def parse_property(page, url, price, currency, auction_img, auction_datetime_new
     fix_br_tag_issue(result)
 
     description = (
-        result.xpath("//div[@class='twelve fluid columns']")[0]
-        .text_content()
-        .strip()
+        page.locator("xpath=(//div[@class='twelve fluid columns'])[1]")
+        .inner_text()
         .replace("< Back to Lot ListNext Lot >Lot\n", "")
-        .replace("\n< Back to Lot ListNext Lot >", "")
+        .replace("< Back to Lot ListNext Lot >", "")
+        .replace("< Previous Lot", "")
+        .replace("Next Lot >", "")
+        .strip()
     )
-
-    tenure = get_tenure(description)
-
+    tenure_nodes = result.xpath("//div[contains(translate(text(), 'TENURE', 'tenure'), 'tenure')]/following-sibling::p")
+    tenure = None
+    if tenure_nodes:
+        tenure = get_tenure(tenure_nodes[0].text_content().strip())
+    if tenure is None:
+        tenure = get_tenure(description)
     address = result.xpath("//div[@class='address']")[0].text_content().strip()
     postal_code = parse_postal_code(address, __file__)
-    property_type = None
-    number_of_bedrooms = None
+    number_of_bedrooms = get_bedroom(description)
     property_type = get_property_type(description)
-
-    tenure, property_type, number_of_bedrooms = get_beds_type_tenure(
-        tenure, property_type, number_of_bedrooms, description
-    )
 
     venue = "online auction"
     data_hash = {
@@ -51,7 +51,7 @@ def parse_property(page, url, price, currency, auction_img, auction_datetime_new
         "number_of_bedrooms": number_of_bedrooms,
         "tenure": tenure,
     }
-    HouseAuction.sv_upd_result(data_hash)
+    HouseAuction.sv_upd_result_thread(data_hash)
 
 
 def start():

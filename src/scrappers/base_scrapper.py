@@ -243,15 +243,14 @@ def get_beds_type_tenure(tenure, property_type, no_of_beds, description):
     return tenure, property_type, no_of_beds
 
 
-# def get_bedroom(text):
-#     no_of_beds=0
-#     pattern = re.compile(r'(1|2|3|4|5|6|7|8|9|10|one|two|three|four|five|six|seven|eight|nine|ten|double)\+?
-#     *(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)', re.IGNORECASE)
-#     for numRooms in pattern.finditer(text):
-#         if (numRooms.group(1)):
-#             no_of_beds=no_of_beds+convert_words_to_integer(numRooms.group(1))
-#         elif (numRooms.group(2)):
-#             no_of_beds=no_of_beds+convert_words_to_integer(numRooms.group(2))
-#     if no_of_beds:
-#         return no_of_beds
-#     return None
+def clean_date_time_txt(auction_date_text):
+    for word in re.split(r"\s", auction_date_text):
+        if word == "":
+            continue
+        if not re.search(
+            r"Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sep(?:tember)?|"
+            r"Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)|\d+(?:st|nd|rd|th)\b|\d+(?::|\.)\d+\s*(?:am|pm)|\b\d+\b",
+            word,
+        ):
+            auction_date_text = re.sub(rf"\s?\b{word}\b\s?", " ", auction_date_text)
+    return auction_date_text

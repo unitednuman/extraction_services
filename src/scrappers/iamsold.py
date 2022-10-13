@@ -42,7 +42,7 @@ def parse_properties(html_content):
                 try:
                     auction_datetime = parse_auction_date(end_time)
                 except:
-                    auction_datetime = None
+                    continue
                 propertyDescription = result.xpath("//div[@class='inner-properties-content']")[0].text_content()
             else:
                 continue

@@ -1,22 +1,14 @@
 import requests
 from lxml import html
-from price_parser import Price
-import re
-import dateparser
-from price_parser import Price
-import logging
-import json
-from json import JSONDecodeError
 from scrappers.base_scrapper import *
-from scrappers.traceback import get_traceback, save_error_report
-from extraction_services.models import HouseAuction, ErrorReport
-import dateutil.parser as dparser
-
+from scrappers.traceback import save_error_report
+from extraction_services.models import HouseAuction
 
 payload = {}
 headers = {
     "authority": "realtime.connectukauctions.co.uk",
-    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,"
+              "application/signed-exchange;v=b3;q=0.9",
     "accept-language": "en-US,en;q=0.9",
     "cache-control": "max-age=0",
     "referer": "https://connectukauctions.co.uk/",
@@ -28,7 +20,8 @@ headers = {
     "sec-fetch-site": "same-site",
     "sec-fetch-user": "?1",
     "upgrade-insecure-requests": "1",
-    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)"
+                  " Chrome/104.0.0.0 Safari/537.36",
 }
 
 
@@ -68,9 +61,7 @@ def _run(url):
     results = html.fromstring(response.content)
     fix_br_tag_issue(results)
     try:
-        result = results.xpath(
-            "//li[contains(@class,'ast-col-sm-12 ast-article-post astra-woo-hover-swap uwa_auction_status_pending product type-product')]"
-        )
+        result = results.xpath("//ul[contains(@class, 'products')]//li")
 
         for auction in result:
             try:

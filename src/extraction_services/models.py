@@ -98,32 +98,36 @@ class HouseAuction(TimeStampedModel):
     # is_sold = models.BooleanField(null=True, blank=True)
 
     @classmethod
+    def sv_upd_result_thread(cls, data: dict, async_error=False) -> "HouseAuction":
+        results = []
+        t = Thread(
+            target=cls._sv_upd_result,
+            daemon=True,
+            args=(data, results),
+            kwargs=dict(
+                async_error=async_error,
+                filenames=", ".join(
+                    {os.path.basename(s.filename) for s in inspect.stack() if r"scrappers" in s.filename}
+                ),
+            ),
+        )
+        t.start()
+        t.join()
+        return results[0]
+
+    @classmethod
     def sv_upd_result(cls, data: dict) -> "HouseAuction":
         try:
             return cls._sv_upd_result(data)
         except SynchronousOnlyOperation:
-            results = []
-            t = Thread(
-                target=cls._sv_upd_result,
-                daemon=True,
-                args=(data, results),
-                kwargs=dict(
-                    async_error=True,
-                    filenames=", ".join(
-                        {os.path.basename(s.filename) for s in inspect.stack() if r"scrappers" in s.filename}
-                    ),
-                ),
-            )
-            t.start()
-            t.join()
-            return results[0]
+            return cls.sv_upd_result_thread(data, async_error=True)
 
     @classmethod
     def _sv_upd_result(cls, data: dict, results: list = None, async_error=False, filenames=None) -> "HouseAuction":
         if async_error:
             LoggerModel.debug("Retrying using thread", filenames=filenames)
         else:
-            LoggerModel.debug("Saving HouseAuction")
+            LoggerModel.debug("Saving HouseAuction", filenames=filenames)
         data["property_link"] = data["property_link"].strip()
         if house_auction := HouseAuction.objects.filter(property_link=data["property_link"]).first():
             house_auction.__dict__.update(data)

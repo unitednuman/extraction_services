@@ -61,22 +61,14 @@ def parse_property(auction_url, auction_image, auction_title, auction_price, pro
         floors = get_text(result, 0, "//div[@id='property-details']//table")
 
         tenure = get_tenure(description)
-
+        no_of_beds = None
         if floors:
             no_of_beds = get_bedroom(floors)
-        else:
+        if not no_of_beds:
             no_of_beds = get_bedroom(description)
-
-        property_type_temp = get_property_type(description)
-        if property_type_temp == "other":
-            property_type_temp = get_property_type(property_type)
-        if property_type_temp != "other":
-            property_type = property_type_temp
-        elif property_type in property_map_local:
-            property_type = property_map_local[property_type]
-        else:
-            property_type = "other"
-
+        property_type = get_property_type(property_type)
+        if property_type == "other":
+            property_type = get_property_type(description)
         if property_type == "Land":
             no_of_beds = None
 
