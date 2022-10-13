@@ -25,7 +25,6 @@ def parse_property(auction_id, lot_id, auction_date, venue):
     )
     pictureLink = url + json_data["lot"]["images"][0]["large_image"]
     price = json_data["lot"]["low_estimate"]
-    tenure = get_tenure(json_data["lot"]["tenure"])
     address = json_data["lot"]["name"]
     postal_code = parse_postal_code(address, __file__)
     auction_datetime = auction_date
@@ -35,6 +34,20 @@ def parse_property(auction_id, lot_id, auction_date, venue):
     number_of_bedrooms = json_data["lot"]["bedrooms"]
     if number_of_bedrooms is None:
         number_of_bedrooms = get_bedroom(description)
+    elif number_of_bedrooms in ["0", 0] and property_type != "land":
+        strapline = json_data["lot"]["strapline"]
+        number_of_bedrooms = 0
+        if "bed" in strapline:
+            # print(strapline)
+            if results := re.findall(
+                r"(\d+ x \w+) bed(?:rooms?)?[ \w+]*(?:\s*(?:,|and) (\d+ x \w+) bed(?:rooms?)?)", strapline, flags=re.I
+            ):
+                for result in results[0]:
+                    num = result.split(" x ")[0]
+                    number_of_bedrooms += int(num)
+            else:
+                number_of_bedrooms = get_bedroom(strapline)
+
     tenure = get_tenure(json_data["lot"]["tenure"])
     if tenure is None:
         tenure = get_tenure(description)

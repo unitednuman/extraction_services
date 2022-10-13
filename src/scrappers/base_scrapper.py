@@ -184,22 +184,24 @@ def fix_br_tag_issue(doc):
         br.tail = "\n" + br.tail if br.tail else "\n"
 
 
+numbers_words_to_int_map = {
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+    "double": 2,
+}
+
+
 def convert_words_to_integer(word):
-    numbers = {
-        "one": 1,
-        "two": 2,
-        "three": 3,
-        "four": 4,
-        "five": 5,
-        "six": 6,
-        "seven": 7,
-        "eight": 8,
-        "nine": 9,
-        "ten": 10,
-        "double": 2,
-    }
     try:
-        return numbers[word.strip().lower()]
+        return numbers_words_to_int_map[word.strip().lower()]
     except BaseException as be:
         try:
             return int(word.strip())
@@ -220,6 +222,22 @@ def get_bedroom(text):
             return convert_words_to_integer(numRooms.group(1).strip())
         elif numRooms.group(2) is not None:
             return int(numRooms.group(2))
+    return None
+
+
+def get_bedroom_v2(text):
+    match = re.search(
+        r"(\d+\s?(?:/\s?\d+)?|one|two|three|four|five|six|seven|eight|nine|ten|double)\+?\s*(?:double +)?-?bed(?:room)?s?|bed(?:room)?s?:? *(\d+\+?)",
+        text,
+        re.IGNORECASE,
+    )
+    if match:
+        if (grp1 := match.group(1)) is not None:
+            if "/" in grp1:
+                return int(grp1.split("/")[0])
+            return convert_words_to_integer(grp1)
+        elif match.group(2) is not None:
+            return int(match.group(2))
     return None
 
 

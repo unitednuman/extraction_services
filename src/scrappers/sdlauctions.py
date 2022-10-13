@@ -1,9 +1,13 @@
-import re
-
 from lxml import html
 import requests
-
-from scrappers.base_scrapper import parse_postal_code, get_tenure, fix_br_tag_issue, get_property_type
+from scrappers.base_scrapper import (
+    parse_postal_code,
+    get_tenure,
+    fix_br_tag_issue,
+    get_property_type,
+    get_bedroom,
+    get_bedroom_v2,
+)
 from scrappers.traceback import save_error_report
 import dateparser
 from extraction_services.models import HouseAuction
@@ -14,7 +18,7 @@ base_url = "https://www.sdlauctions.co.uk"
 
 def get_text(node, index, xpath, raise_error=True):
     try:
-        return node.xpath(xpath)[index].text_content()
+        return node.xpath(xpath)[index].text_content().strip()
     except Exception as e:
         if not raise_error:
             print("attribute finding error", e, xpath)
@@ -63,7 +67,6 @@ def parse_properties(results):
 
         propertyLink = base_url + get_attrib(property, "a", 0, "href")
         property_type = get_property_type(propertyLink)
-        numberOfBedrooms = get_text(property, 0, ".//i[@class='fa fa-bed']//following-sibling::span", False)
         address = get_text(property, 0, ".//li[@class='auction-card--contend-address']")
         postcode = parse_postal_code(address, __file__)
         price = get_text(property, 0, ".//li[@class='auction-card--guide-price']//following-sibling::li")
@@ -77,6 +80,17 @@ def parse_properties(results):
         propertyDescription = get_text(
             result, 0, "//div[contains(text(),'Property Description:')]//following-sibling::p"
         )
+        numberOfBedrooms = get_text(property, 0, ".//i[@class='fa fa-bed']//following-sibling::span", False)
+        if numberOfBedrooms:
+            try:
+                numberOfBedrooms = int(numberOfBedrooms)
+            except:
+                numberOfBedrooms = get_bedroom(numberOfBedrooms)
+
+        if numberOfBedrooms is None or numberOfBedrooms == "":
+            numberOfBedrooms = get_bedroom(propertyDescription)
+        if numberOfBedrooms is None:
+            numberOfBedrooms = get_bedroom_v2(propertyDescription)
         tenure_str = get_text(result, 0, "//div[contains(text(),'Tenure: ')]//following-sibling::p")
         tenure = get_tenure(tenure_str)
         pictureLink = get_attrib(result, "//a[@data-lightbox='property-image']//img", 1, "src")
@@ -93,6 +107,7 @@ def parse_properties(results):
             "auction_datetime": auction_date,
             "tenure": tenure,
             "property_type": property_type,
+            "auction_venue": "Online Auction",
             "source": "sdlauctions.co.uk",
         }
         # print(data_hash)
