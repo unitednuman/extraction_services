@@ -1,3 +1,5 @@
+import sys
+from subprocess import Popen, TimeoutExpired
 from extraction_services.models import LoggerModel
 from scrappers.traceback import save_error_report
 import os
@@ -21,8 +23,17 @@ def run():
         try:
             module = importlib.import_module(f"scrappers.{name[:-3]}")
             if hasattr(module, "run"):
+                max_wait = getattr(module, "MAX_WAIT", 15 * 60)
                 LoggerModel.info(f"Running: {name}")
-                module.run()
+                # module.run()
+                cmd = [sys.executable, "manage.py", "scrapper_tester", "--path", name]
+                process = Popen(cmd)
+                try:
+                    process.wait()
+                except TimeoutExpired:
+                    LoggerModel.info(f"Waited {max_wait} seconds for {name}, going to terminate it.")
+                    process.terminate()
+
         except BaseException as be:
             # logging.error("error in :", name)
             LoggerModel.error(f"error in :{name}")
