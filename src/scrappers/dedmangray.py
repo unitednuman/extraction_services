@@ -1,7 +1,5 @@
 import requests
 from lxml import html
-from playwright.sync_api import sync_playwright
-
 from scrappers.base_scrapper import *
 from scrappers.traceback import save_error_report
 from extraction_services.models import HouseAuction
@@ -96,30 +94,22 @@ def _run(url, property_type):
 
 def dont_run():
     url = "https://www.dedmangray.co.uk/auction/"
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.set_default_timeout(60000)
-        try:
-            page.goto(url)
-            auction_list_url = page.locator("xpath=//a[@title='Current Auctions']").get_attribute("href")
-            if not auction_list_url.startswith("http"):
-                auction_list_url = f"https://www.dedmangray.co.uk{auction_list_url}"
-            page.goto(auction_list_url)
-            auction_date_text = page.locator("xpath=//div[contains(@class, 'bannerbar')]/div[1]").inner_text()
-            auction_date_text = "".join(
-                re.split(
-                    r"(\d+ (?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|"
-                    r"May|June?|July?|Aug(?:ust)?|"
-                    r"Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)))",
-                    auction_date_text,
-                )[1:]
-            )
-            auction_date_text = clean_date_time_txt(auction_date_text)
-            auction_datetime = parse_auction_date(auction_date_text)
+    with browser_context() as (page, browser):
+        page.goto(url)
+        auction_list_url = page.locator("xpath=//a[@title='Current Auctions']").get_attribute("href")
+        if not auction_list_url.startswith("http"):
+            auction_list_url = f"https://www.dedmangray.co.uk{auction_list_url}"
+        page.goto(auction_list_url)
+        auction_date_text = page.locator("xpath=//div[contains(@class, 'bannerbar')]/div[1]").inner_text()
+        auction_date_text = "".join(
+            re.split(
+                r"(\d+ (?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|"
+                r"May|June?|July?|Aug(?:ust)?|"
+                r"Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)))",
+                auction_date_text,
+            )[1:]
+        )
+        auction_date_text = clean_date_time_txt(auction_date_text)
+        auction_datetime = parse_auction_date(auction_date_text)
 
-            parse_property(auction_datetime)
-
-        finally:
-            page.close()
-            browser.close()
+        parse_property(auction_datetime)

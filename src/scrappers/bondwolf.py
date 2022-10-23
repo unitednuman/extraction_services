@@ -4,7 +4,6 @@ from datetime import timedelta
 from lxml import html
 from scrappers.base_scrapper import *
 from extraction_services.models import HouseAuction
-from playwright.sync_api import sync_playwright
 
 start_url = "https://www.bondwolfe.com/auctions/properties/?location=&minprice=&maxprice=&type="
 
@@ -72,24 +71,18 @@ def parse_property(page, url):
 
 
 def run():
-    with sync_playwright() as p:
-        try:
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page()
-            page.goto(start_url)
-            page.locator("//label[@for='postPerPage5']").first.click()
-            time.sleep(3)
-            result = html.fromstring(page.content())
-            fix_br_tag_issue(result)
-            if result.xpath("//h3[contains(text(), 'Properties coming soon.')]"):
-                LoggerModel.debug("No Properties Found")
-                return
-            for property in result.xpath("//a[@class='PropertyCard']"):
-                try:
-                    url = property.xpath(".")[0].attrib["href"]
-                    parse_property(page, url)
-                except BaseException as be:
-                    save_error_report(be, __file__)
-        finally:
-            page.close()
-            browser.close()
+    with browser_context() as (page, browser):
+        page.goto(start_url)
+        page.locator("//label[@for='postPerPage5']").first.click()
+        time.sleep(3)
+        result = html.fromstring(page.content())
+        fix_br_tag_issue(result)
+        if result.xpath("//h3[contains(text(), 'Properties coming soon.')]"):
+            LoggerModel.debug("No Properties Found")
+            return
+        for auction in result.xpath("//a[@class='PropertyCard']"):
+            try:
+                url = auction.xpath(".")[0].attrib["href"]
+                parse_property(page, url)
+            except BaseException as be:
+                save_error_report(be, __file__)

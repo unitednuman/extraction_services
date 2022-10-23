@@ -1,8 +1,10 @@
+import contextlib
 import inspect
 import os
 import re
 from datetime import datetime
 import dateparser
+from playwright.sync_api import sync_playwright
 from price_parser import Price
 import json
 from json import JSONDecodeError
@@ -272,3 +274,18 @@ def clean_date_time_txt(auction_date_text):
         ):
             auction_date_text = re.sub(rf"\s?\b{word}\b\s?", " ", auction_date_text)
     return auction_date_text
+
+
+@contextlib.contextmanager
+def browser_context(headless=True):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=headless)
+        page = browser.new_page()
+        page.set_default_timeout(60000)
+        try:
+            yield page, browser
+        finally:
+            LoggerModel.info(f"Going to close page and browser")
+            page.close()
+            browser.close()
+            LoggerModel.info(f"Page and browser closed")

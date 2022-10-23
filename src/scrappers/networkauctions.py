@@ -2,7 +2,6 @@ import time
 from lxml import html
 from scrappers.base_scrapper import *
 from extraction_services.models import HouseAuction
-from playwright.sync_api import sync_playwright
 
 start_url = "https://www.networkauctions.co.uk/network-auctions-catalogues/"
 
@@ -55,55 +54,49 @@ def parse_property(page, url, price, currency, auction_img, auction_datetime_new
 
 
 def start():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        try:
-            page.goto(start_url)
-            time.sleep(3)
-            page.locator("//button[contains(text(), 'Allow all')]").first.click()
-            time.sleep(3)
+    with browser_context() as (page, browser):
+        page.goto(start_url)
+        time.sleep(3)
+        page.locator("//button[contains(text(), 'Allow all')]").first.click()
+        time.sleep(3)
 
+        results = html.fromstring(page.content())
+        fix_br_tag_issue(results)
+
+        # for property in result.xpath("//table[@class='tableauctions']//a"):
+        auction = results.xpath(".//iframe")
+        page.goto(auction[0].attrib["src"])
+        time.sleep(3)
+        result = html.fromstring(page.content())
+        fix_br_tag_issue(result)
+        try:
+            try:
+                auction = result.xpath(".//table[@class='tableauctions']//a")[0]
+            except:
+                try:
+                    auction = result.xpath("//table[@class='tableauctions']//a")[0]
+                except:
+                    pass
+            url = "https://www.networkauctions.co.uk/online-auction-catalogues/" + auction.attrib["href"]
+            auction_time = parse_auction_date(auction.text_content().strip())
+            auction_datetime_new = datetime(auction_time.year, auction_time.day, auction_time.month, hour=10)
+            page.goto(url)
+            time.sleep(3)
             results = html.fromstring(page.content())
             fix_br_tag_issue(results)
-
-            # for property in result.xpath("//table[@class='tableauctions']//a"):
-            property = results.xpath(".//iframe")
-            page.goto(property[0].attrib["src"])
-            time.sleep(3)
-            result = html.fromstring(page.content())
-            fix_br_tag_issue(result)
-            try:
-                try:
-                    property = result.xpath(".//table[@class='tableauctions']//a")[0]
-                except:
-                    try:
-                        property = result.xpath("//table[@class='tableauctions']//a")[0]
-                    except:
-                        pass
-                url = "https://www.networkauctions.co.uk/online-auction-catalogues/" + property.attrib["href"]
-                auction_time = parse_auction_date(property.text_content().strip())
-                auction_datetime_new = datetime(auction_time.year, auction_time.day, auction_time.month, hour=10)
-                page.goto(url)
-                time.sleep(3)
-                results = html.fromstring(page.content())
-                fix_br_tag_issue(results)
-                for auction in results.xpath(
-                    "//div[@style='margin-bottom:20px; background:#fafafa; border:solid 1px #efefef; padding:15px;']"
-                ):
-                    guide_price = auction.xpath(".//p[@class='price']")[0].text_content().strip()
-                    price, currency = prepare_price(guide_price)
-                    auction_url = (
-                        "https://www.networkauctions.co.uk/online-auction-catalogues/"
-                        + auction.xpath(".//a[@class='button']")[0].attrib["href"]
-                    )
-                    auction_img = auction.xpath(".//img[@style='border-radius:2px;']")[0].attrib["src"]
-                    parse_property(page, auction_url, price, currency, auction_img, auction_datetime_new)
-            except BaseException as be:
-                save_error_report(be, __file__)
-        finally:
-            page.close()
-            browser.close()
+            for auction in results.xpath(
+                "//div[@style='margin-bottom:20px; background:#fafafa; border:solid 1px #efefef; padding:15px;']"
+            ):
+                guide_price = auction.xpath(".//p[@class='price']")[0].text_content().strip()
+                price, currency = prepare_price(guide_price)
+                auction_url = (
+                    "https://www.networkauctions.co.uk/online-auction-catalogues/"
+                    + auction.xpath(".//a[@class='button']")[0].attrib["href"]
+                )
+                auction_img = auction.xpath(".//img[@style='border-radius:2px;']")[0].attrib["src"]
+                parse_property(page, auction_url, price, currency, auction_img, auction_datetime_new)
+        except BaseException as be:
+            save_error_report(be, __file__)
 
 
 def run():
